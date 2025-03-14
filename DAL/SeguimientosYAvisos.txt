@@ -1,0 +1,7 @@
+﻿
+
+
+
+|13/03|
+-Se creo la clase ClienteRepository con los metodos de la interfaz IGenereicRepository.
+Falta completar las que faltan.

@@ -1,0 +1,85 @@
+﻿
+BLL:
+
+-Esta capa se encarga de crear clases y metodos que almacenan la logica del negocio 
+y que se deberan ejecutar antes de llegar a la API.
+
+
+@PATRONES DE DISENO "RESPOSITORY"  "UNIT OF WORK".
+
+1.Repository => Gestiona el ACCESO y OPERACIONES de una sola entidad, como Consultar o Modificar una entidad.
+
+2.Unit of Work => Coordina las OPERACIONES, asegurando que TODOS los cambios se EJECUTEN en la misma TRANSACCION.
+
+
+@VENTAJAS DE USAR AMBAS:
+REPOSITORY:
+-Abstraccion de acceso a datos
+-Facilita pruebas unitarias (puede simular las pruebas unitarias sin acceder a la base de datos).
+-Mejora la organizacion del codigo.(la logica de interaccion a la base de datos se encuentra en un solo lugar)
+
+UNIT OF WORK:
+-Gestiona transacciones atomicas.
+-Optimiza la persistencia de cambios en la base de datos.
+-Coordina multiples repositorios dentro de la transaccion.
+
+
+@COMO FUNCIONAN?
+
+A-REPOSITORY: 
+(Como trabaja?)
+1-Este CONTROLA LA LOGICA de ACCESO A DATO para una ENTIDAD especifica.(Producto,Precio,Cliente,Turno)
+Logica de Acceso a la base de datos para cada entidad
+
+(Como se implementa eso que trabaja?)
+2-En general, se crea una interfaz que definira los metodos que van a operar con esos datos(Ej:Find,Add,Update,Delete).
+Interfaz que define metodos que operan con los datos de su entidad.
+
+(Como accede a la base de datos eso que se implementa para trabajarlo?)
+3-Una implementacion concreta de esa interfaz accede a la base de datos, utilizando EF 
+o cualquiero otra de acceso a datos.
+
+
+B-UNIT OF WORK:
+(QUE HACE?)
+1-La Unidad de Trabajo REGISTRA CAMBIOS que se hacen dentro de los objetos Gestionados Durante su transaccion.
+REGISTRA CAMBIOS DE GESTION DURANTE TRANSACCION
+
+(QUE IMPLICA?)
+2-Si los cambios son correctos, se confirma la TRANSACCION, Y SE PERSISTE EN LA BASE DE DATOS.
+CAMBIOS CORRECTOS > CONFIRMACION DE TRANSACCION > PERSISTENCIA DE DATOS
+
+3-Maneja multiples REPOSITORIOS dentro de una misma transaccion. 
+
+
+@COMO FUNCIONAN JUSTOS?
+
+-Se trabaja con el Repository cuando necesitas interactuar con una única entidad o conjunto de entidades.
+Este patrón abstrae la interacción con la base de datos.
+-Se utiliza Unit of Work cuando necesitas GESTIONAR CAMBIOS en varias entidades de forma conjunta
+(por ejemplo, actualizar stock y registrar ventas en una misma operación).
+
+El Unit of Work COORDINA el trabajo de VARIOS REPOSITORIOS, asegurando que todas las operaciones
+de la transacción se ejecuten de forma atómica (todo o nada).
+CADA TRANSACCION > SE EJECUTA DE FORMA ATOMICA > ASEGURANDO QUE TODAS LAS OPERACIONES DE > VARIOS REPOSITORIOS >
+SEAN COORDINADOS POR UNIT OF WORK.
+
+-TRABAJO COMBINADO(FLUJO):
+1-Repository gestiona el acceso y las operaciones de una sola entidad, como consultar o modificar un producto.
+2-Unit of Work coordina estas operaciones, asegurándose de que todos los cambios se realicen en la misma transacción.
+
+
+
+
+-----------------PASOS DE IMPLEMENTACION DE LOS PATRONES UNIT OF WORK Y REPOSITORY-------------------
+Próximo paso: Implementar el patrón Repository y Unit of Work en tu proyecto
+
+Ahora que tienes claro cómo funcionan estos patrones, procederemos con la implementación en tu API. Vamos a seguir estos pasos:
+
+    Crear las interfaces de Repository (para cada entidad importante)
+    Implementar los Repositories concretos
+    Crear la interfaz de Unit of Work
+    Implementar Unit of Work
+    Registrar los servicios en Program.cs
+    Probarlo en un controlador
+
