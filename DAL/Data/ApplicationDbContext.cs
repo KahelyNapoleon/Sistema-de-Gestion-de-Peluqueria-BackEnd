@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using DomainLayer.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Data;
 
@@ -16,7 +16,7 @@ public partial class ApplicationDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Administradores> Administradores { get; set; }
+    public virtual DbSet<Administrador> Administradores { get; set; }
 
     public virtual DbSet<Cliente> Clientes { get; set; }
 
@@ -32,13 +32,13 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Turno> Turnos { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=.\\MSSQLSERVER01;Initial Catalog=TurnoServicioPeluqueria;Integrated Security=true ;MultipleActiveResultSets=true ;user=gabriel;password=885522;TrustServerCertificate=true");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Administradores>(entity =>
+        modelBuilder.Entity<Administrador>(entity =>
         {
             entity.HasKey(e => e.AdministradorId).HasName("PK__Administ__2C780D768C04393D");
 
@@ -137,11 +137,6 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.Precio).HasColumnType("decimal(20, 2)");
-
-            entity.HasOne(d => d.TipoServicio).WithMany(p => p.Servicios)
-                .HasForeignKey(d => d.TipoServicioId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Servicio_TipoServicio");
         });
 
         modelBuilder.Entity<TipoServicio>(entity =>
@@ -155,6 +150,11 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Servicio).WithMany(p => p.TipoServicios)
+                .HasForeignKey(d => d.ServicioId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TipoServicio_Servicio");
         });
 
         modelBuilder.Entity<Turno>(entity =>

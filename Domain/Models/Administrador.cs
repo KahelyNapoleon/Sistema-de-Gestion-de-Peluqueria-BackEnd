@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DomainLayer.Models;
 
-public partial class Administradores
+public partial class Administrador
 {
     public int AdministradorId { get; set; }
 

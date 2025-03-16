@@ -45,23 +45,32 @@ namespace DAL.Repositorios
 
         public async Task DeleteAsync(int id)
         {
-            _context.HistorialTurnos.Remove(id);
-            await _context.SaveChangesAsync();
+            var historialExiste = await _context.HistorialTurnos.FindAsync(id);
+            if (historialExiste != null)
+            {
+                _context.HistorialTurnos.Remove(historialExiste);
+                await _context.SaveChangesAsync();
+            }
+          
         }
 
         //Metodos agregados a la Interfaz HistorialTurno
-        //public async Task<IEnumerable<HistorialTurno>> ObtenerPorAdministradorAsync(int id)
-        //{
-        //    var admnistradorExiste = await _context.Administradores.FindAsync(id);
-        //    if(admnistradorExiste != null)
-        //    {
-        //        return _context.HistorialTurnos
-        //            .Where();
+        public async Task<IEnumerable<HistorialTurno>> ObtenerPorAdministradorAsync(int administradorId)
+        {
+            return await _context.HistorialTurnos
+                .Include(h => h.Administrador)
+                .Where(h => h.AdministradorId == administradorId)
+                .ToListAsync();
+        }
 
-        //    }
-            
-        //}
-       
+        public async Task<IEnumerable<HistorialTurno>> ObtenerPorTurnoAsync(int turnoId)
+        {
+            return await _context.HistorialTurnos
+                .Include(h => h.Turno)
+                .Where(h => h.TurnoId == turnoId)
+                .ToListAsync();
+        }
+
 
     }
 }

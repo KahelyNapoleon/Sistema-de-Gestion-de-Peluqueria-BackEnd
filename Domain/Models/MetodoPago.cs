@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace DomainLayer.Models;
+
 public partial class MetodoPago
 {
     public int MetodoPagoId { get; set; }
