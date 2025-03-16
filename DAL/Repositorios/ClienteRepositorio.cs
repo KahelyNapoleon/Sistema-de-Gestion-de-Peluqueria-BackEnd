@@ -10,13 +10,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositorios
 {
-    class ClienteRepository : IGenericRepository<Cliente>
+    class ClienteRepositorio : IGenericRepository<Cliente>
     {
         //inyeccion de dependencia
 
         private readonly ApplicationDbContext _context;
 
-        public ClienteRepository(ApplicationDbContext context)
+        public ClienteRepositorio(ApplicationDbContext context)
         {
             _context = context;
         }

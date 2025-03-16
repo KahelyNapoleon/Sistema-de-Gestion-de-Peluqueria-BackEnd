@@ -16,7 +16,7 @@ public partial class ApplicationDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Administradore> Administradores { get; set; }
+    public virtual DbSet<Administradores> Administradores { get; set; }
 
     public virtual DbSet<Cliente> Clientes { get; set; }
 
@@ -38,7 +38,7 @@ public partial class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Administradore>(entity =>
+        modelBuilder.Entity<Administradores>(entity =>
         {
             entity.HasKey(e => e.AdministradorId).HasName("PK__Administ__2C780D768C04393D");
 

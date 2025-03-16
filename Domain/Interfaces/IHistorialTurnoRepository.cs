@@ -7,7 +7,7 @@ using DomainLayer.Models;
 
 namespace DomainLayer.Interfaces
 {
-    public interface IHistorialTurnoRepository
+    public interface IHistorialTurnoRepository : IGenericRepository<HistorialTurno>
     {
         Task<IEnumerable<HistorialTurno>> ObtenerPorTurnoAsync(int turnoId);
         Task<IEnumerable<HistorialTurno>> ObtenerPorAdministradorAsync(int administradorId);

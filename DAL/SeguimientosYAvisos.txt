@@ -2,6 +2,34 @@
 
 
 
-|13/03|
+|13/03| - FINAL
 -Se creo la clase ClienteRepository con los metodos de la interfaz IGenereicRepository.
 Falta completar las que faltan.
+
+-------------------------------------------------------------------------------------------------
+|14/03| - CONTINUACION
+-Continuar con la creacion de los repositorios que sean necesarios
+
+FINALIZACION -
+-QUEDO POR ACLARAR LA RELACION DE LA TABLA SERVICIOS CON VARIOS TIPO SERVICIOS
+  entity.HasOne(d => d.TipoServicio).WithMany(p => p.Servicios)
+                .HasForeignKey(d => d.TipoServicioId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Servicio_TipoServicio");
+-HAY ALGO QUE NO CUADRA UN SERVICIO PUEDE TENER VARIOS TIPOSERVICIO Y NO VICEVERSA 
+-OBSERVAR QUE SE VIO QUE UNA TABLA DEL LADO DE 'VARIOS' NO PUEDE ESTAR INDEXADO.
+
+-POR OTRO LADO: NO SE DEBE CREAR UN REPOSITORIO POR CADA TABLA DE LA BASE DE DATOS SINO QUE SE JUNTAN AQUELLAS
+QUE SON DE 'TIPO RAIZ' Y 'ENTIDAD DEPENDIENTE', BASICAMENTE UNA TABLA QUE ESTA RELACIONADA(Y CONTIENE UN CAMPO DE OTRA)
+CON OTRA, SE DEBEN CREAR UN SOLO REPOSITORIO PARA LA TABLA RAIZ.
+-TAL VEZ SE TENGA QUE ELIMINAR EL INDICE DE LA PRIMARY KEY DE LA TABLA TIPOSERVICIO
+
+-------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
