@@ -4,23 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DAL.Data;
+using DAL.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositorios
 {
-    class ClienteRepositorio : RepositorioGenerico<Cliente>
+    class MetodoPagoRepositorio : RepositorioGenerico<MetodoPago>
     {
-        //inyeccion de dependencia
-
         private readonly ApplicationDbContext _context;
 
-        public ClienteRepositorio(ApplicationDbContext context) : base(context)
+        public MetodoPagoRepositorio(ApplicationDbContext context) : base(context) 
         {
             _context = context;
-        }
-
-
+        }      
       
     }
 }

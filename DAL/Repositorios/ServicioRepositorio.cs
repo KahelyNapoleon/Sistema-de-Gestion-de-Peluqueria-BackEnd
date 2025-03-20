@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DAL.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,18 +10,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositorios
 {
-    class ClienteRepositorio : RepositorioGenerico<Cliente>
+    class ServicioRepositorio : RepositorioGenerico<Servicio> ,IServicioRepository
     {
-        //inyeccion de dependencia
-
         private readonly ApplicationDbContext _context;
 
-        public ClienteRepositorio(ApplicationDbContext context) : base(context)
+        public ServicioRepositorio(ApplicationDbContext context) : base(context) 
         {
             _context = context;
         }
 
+      //Este repositorio tiene una interfaz propia para futuras implementaciones.
 
-      
+        
     }
 }

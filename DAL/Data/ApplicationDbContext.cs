@@ -175,21 +175,25 @@ public partial class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_Administradores");
 
+            //VERIFICAR
             entity.HasOne(d => d.Cliente).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.ClienteId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_Cliente");
 
+            //EVALUAR
             entity.HasOne(d => d.EstadoTurno).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.EstadoTurnoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_EstadoTurno");
 
+            //EVALUAR 
             entity.HasOne(d => d.MetodoPago).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.MetodoPagoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_MetodoPago");
 
+            //
             entity.HasOne(d => d.Servicio).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.ServicioId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

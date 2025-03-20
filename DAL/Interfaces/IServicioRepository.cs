@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using DomainLayer.Models;
 
-namespace DomainLayer.Interfaces
+namespace DAL.Interfaces
 {
     public interface IServicioRepository : IGenericRepository<Servicio>
     {
-        Task<List<Servicio>> ObtenerPorTipoServicioAsync(int tipoServicioId); 
+      
     }
 }
