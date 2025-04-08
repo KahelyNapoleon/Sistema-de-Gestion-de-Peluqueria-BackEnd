@@ -12,6 +12,6 @@ namespace DAL.Interfaces
         Task<List<T>> GetAllAsync(); //Obtiene todos los registros | HttpGET
         Task AddAsync(T entity); //Crea un nuevo registro de tipo T(objeto)
         Task UpdateAsync(T entity);//Actualiza un registro de tipo T(objeto)
-        Task DeleteAsync(int id);//Elimina un registro por su ID.
+        void Delete(int id);//Elimina un registro por su ID.
     }
 }
