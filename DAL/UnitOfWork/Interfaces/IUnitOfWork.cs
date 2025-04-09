@@ -1,10 +1,11 @@
-﻿using System;
+﻿using DAL.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DAL.Interfaces
+namespace DAL.UnitOfWork.Interfaces
 {
     interface IUnitOfWork : IDisposable
     {
