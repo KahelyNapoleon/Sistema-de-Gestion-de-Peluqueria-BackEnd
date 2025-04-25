@@ -1,5 +1,6 @@
 ﻿using DAL.Data;
-using DAL.Interfaces;
+using DAL.Repositorios;
+using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositorios
 {
-    class EstadoTurnoRepositorio :  RepositorioGenerico<EstadoTurno>
+    public class EstadoTurnoRepositorio :  RepositorioGenerico<EstadoTurno>, IEstadoTurnoRepository
     {
         private readonly ApplicationDbContext _context;
 

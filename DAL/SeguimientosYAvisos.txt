@@ -57,6 +57,17 @@ ADVERTENCIAS
 
 
 ----------------------------------------------------------------------------------------------------------------------
-[19/03] CORRECCIONES DE CODIGO (PENDIENTE)
--IMPLEMENTAR UN REPOSITORIO GENERICO PARA NO REPETIR CODIGO EXCESIVO.
--MOVER LAS INTERFACES DE DOMAINLAYER A DAL.
+[19/03] CORRECCIONES DE CODIGO 
+-IMPLEMENTAR UN REPOSITORIO GENERICO PARA NO REPETIR CODIGO EXCESIVO. [hecho]
+-MOVER LAS INTERFACES DE DOMAINLAYER A DAL. [hecho]
+
+------------------------------------------------------------------------------------------------------------------------
+[13/04] Se Completo la creacion de los repositorios y la clase unidad de trabajo.
+
+
+
+
+
+
+
+

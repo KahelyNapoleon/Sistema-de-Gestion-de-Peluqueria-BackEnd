@@ -2,7 +2,7 @@
 
 
 using DAL.Data;
-using DAL.Interfaces;
+using DAL.Repositorios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositorios
 {
-    class RepositorioGenerico<TEntity> : IGenericRepository<TEntity>  where TEntity : class
+    public class RepositorioGenerico<TEntity> : IGenericRepository<TEntity>  where TEntity : class
     {
         private readonly ApplicationDbContext _context; //Este campo se le asignara un valor en tiempo de 
         private readonly DbSet<TEntity> _dbSet;         // ejecucion, por medio del constructor.
@@ -23,23 +23,23 @@ namespace DAL.Repositorios
             _dbSet = _context.Set<TEntity>();
         }
 
-        public async Task<List<TEntity>> GetAllAsync()
+        public virtual async Task<List<TEntity>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<TEntity?> GetByIdAsync(int id)
+        public virtual async Task<TEntity?> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task AddAsync(TEntity entity)
+        public virtual async Task AddAsync(TEntity entity)
         {
             _dbSet.Add(entity);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(TEntity entity)
+        public virtual async Task UpdateAsync(TEntity entity)
         {
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
@@ -63,6 +63,18 @@ namespace DAL.Repositorios
             }
             _dbSet.Remove(entityToDelete);
         } 
+
+        public virtual async Task<bool> VerificarSiExiste(int id)
+        {
+            var entidad = await _dbSet.FindAsync(id);
+
+            if (entidad == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
 
 
     }

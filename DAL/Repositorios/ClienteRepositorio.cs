@@ -4,23 +4,42 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DAL.Data;
+using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositorios
 {
-    class ClienteRepositorio : RepositorioGenerico<Cliente>
+    public class ClienteRepositorio : RepositorioGenerico<Cliente> , IClienteRepository
     {
         //inyeccion de dependencia
 
         private readonly ApplicationDbContext _context;
+       
 
         public ClienteRepositorio(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }
 
+        //Obtener un cliente por {id} [HttpGet]
+        public override async Task<Cliente?> GetByIdAsync(int id)
+        {
+            try
+            {
+                var clienteExiste = await _context.Clientes.FindAsync(id);
+                if (clienteExiste != null)
+                {
+                    return clienteExiste;
+                }
+                throw new KeyNotFoundException(nameof(clienteExiste));
+            }
+            catch
+            {
+                throw new KeyNotFoundException($"El cliente con id {id} no se encuentra ne la base de datos");
+            }
+        }
 
-      
+
     }
 }

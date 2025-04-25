@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DAL.Interfaces
+namespace DAL.Repositorios.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
@@ -13,5 +13,7 @@ namespace DAL.Interfaces
         Task AddAsync(T entity); //Crea un nuevo registro de tipo T(objeto)
         Task UpdateAsync(T entity);//Actualiza un registro de tipo T(objeto)
         void Delete(int id);//Elimina un registro por su ID.
+
+        Task<bool> VerificarSiExiste(int id);
     }
 }

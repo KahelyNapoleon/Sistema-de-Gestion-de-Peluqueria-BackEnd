@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DomainLayer.Models;
 
-namespace DAL.Interfaces
+namespace DAL.Repositorios.Interfaces
 {
     public interface IServicioRepository : IGenericRepository<Servicio>
     {

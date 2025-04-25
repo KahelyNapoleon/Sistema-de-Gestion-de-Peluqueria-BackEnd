@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DAL.Data;
-using DAL.Interfaces;
+using DAL.Repositorios;
+using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositorios
 {
-    class MetodoPagoRepositorio : RepositorioGenerico<MetodoPago>
+    public class MetodoPagoRepositorio : RepositorioGenerico<MetodoPago>, IMetodoPagoRepository
     {
         private readonly ApplicationDbContext _context;
 

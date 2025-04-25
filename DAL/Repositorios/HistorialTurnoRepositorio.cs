@@ -1,5 +1,5 @@
 ﻿using DAL.Data;
-using DAL.Interfaces;
+using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositorios
 {
-    class HistorialTurnoRepositorio : RepositorioGenerico<HistorialTurno>, IHistorialTurnoRepository
+    public class HistorialTurnoRepositorio : RepositorioGenerico<HistorialTurno>, IHistorialTurnoRepository
     {
         private readonly ApplicationDbContext _context; //Una constante llamada readonly 
                                                         //tiene la capacidad de ser declarada en 

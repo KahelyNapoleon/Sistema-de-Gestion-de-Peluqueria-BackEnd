@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DAL.Data;
-using DAL.Interfaces;
+using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositorios
 {
-    class TurnoRepositorio : RepositorioGenerico<Turno> , ITurnoRepository
+    public class TurnoRepositorio : RepositorioGenerico<Turno> , ITurnoRepository
     {
         private readonly ApplicationDbContext _context;
 

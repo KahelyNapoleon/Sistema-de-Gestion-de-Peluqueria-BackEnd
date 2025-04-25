@@ -1,4 +1,4 @@
-﻿using DAL.Interfaces;
+﻿using DAL.Repositorios.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAL.UnitOfWork.Interfaces
 {
-    interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork : IDisposable
     {
         ITurnoRepository TurnoRepository { get; }
 

@@ -1,6 +1,6 @@
 ﻿using DAL.Data;
-using DAL.Interfaces;
 using DAL.Repositorios;
+using DAL.Repositorios.Interfaces;
 using DAL.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DAL.UnitOfWork
 {
-    class UnitOfWork : IUnitOfWork, IDisposable
+    public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly ApplicationDbContext _context; //CONSTANTE EN TIEMPO DE EJECUCION
         private IDbContextTransaction _transaction; //VARIABLE DE INSTANCIA PRIVADA.
