@@ -101,7 +101,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
             }catch(DbUpdateConcurrencyException)
             {
-                if (_IClienteRepositorio.)
+                if (_IClienteRepositorio.VerificarSiExiste(id))
                 {
                     return NotFound();
                 }

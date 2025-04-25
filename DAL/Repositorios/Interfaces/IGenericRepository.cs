@@ -14,6 +14,6 @@ namespace DAL.Repositorios.Interfaces
         Task UpdateAsync(T entity);//Actualiza un registro de tipo T(objeto)
         void Delete(int id);//Elimina un registro por su ID.
 
-        Task<bool> VerificarSiExiste(int id);
+        bool VerificarSiExiste(int id);
     }
 }

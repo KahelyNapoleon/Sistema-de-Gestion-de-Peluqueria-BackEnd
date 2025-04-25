@@ -64,9 +64,9 @@ namespace DAL.Repositorios
             _dbSet.Remove(entityToDelete);
         } 
 
-        public virtual async Task<bool> VerificarSiExiste(int id)
+        public virtual bool VerificarSiExiste(int id)
         {
-            var entidad = await _dbSet.FindAsync(id);
+            var entidad =  _dbSet.Find(id);
 
             if (entidad == null)
             {
