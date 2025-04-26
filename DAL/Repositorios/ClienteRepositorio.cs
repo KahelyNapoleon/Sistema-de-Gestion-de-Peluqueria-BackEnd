@@ -40,6 +40,18 @@ namespace DAL.Repositorios
             }
         }
 
+        //public override void Delete(Cliente cliente)
+        //{
+        //    //Incluye los turnos del cliente.
+        //    var entityExist = _context.Clientes
+        //        .Include(c => c.Turnos)
+        //        .FirstOrDefault(c => c.ClienteId == cliente.ClienteId);
+        //    if (entityExist != null)
+        //    {
+        //        _context.Clientes.Remove(entityExist);
+        //    }
+        //}
+
 
     }
 }

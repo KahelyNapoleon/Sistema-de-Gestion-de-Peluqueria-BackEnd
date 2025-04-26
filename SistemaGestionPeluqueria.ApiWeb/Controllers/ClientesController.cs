@@ -11,16 +11,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ClientesController : Controller
     {
 
         private readonly IClienteRepository _IClienteRepositorio;
+        private readonly ApplicationDbContext _context;
 
-        public ClientesController(IClienteRepository IClienteRepositorio)
+        public ClientesController(IClienteRepository IClienteRepositorio, ApplicationDbContext context)
         {
             _IClienteRepositorio = IClienteRepositorio;
+            _context = context;
         }
 
         [HttpGet]
@@ -74,7 +76,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
                 await _IClienteRepositorio.AddAsync(nuevoCliente);
 
-                return Ok(cliente);
+                return Ok(nuevoCliente);
 
 
             }catch(Exception ex)
@@ -89,19 +91,19 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         [HttpPatch]
         public async Task<IActionResult> ActualizarCliente(int id, [FromBody] Cliente cliente)
         {
+
+            if (id != cliente.ClienteId)
+            {
+                return BadRequest("El id no coincide con el Id del Cliente");
+            }
+
             try
             {
-                if (id != cliente.ClienteId)
-                {
-                    return BadRequest();
-                }
-
                 await _IClienteRepositorio.UpdateAsync(cliente);
-
 
             }catch(DbUpdateConcurrencyException)
             {
-                if (_IClienteRepositorio.VerificarSiExiste(id))
+                if (!await _IClienteRepositorio.VerificarSiExiste(id))
                 {
                     return NotFound();
                 }
@@ -114,6 +116,34 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             return NoContent();
         }
 
+
+        //NO SE ELIMINA, PROBADO POR POSTMAN, 
+        //VER QUE CUANDO INGRESAMOS EL ID EN LA SOLICITUD DEL ENDPOINT, NOS REDIRIGUE AL METODO GETALL PERO NO ELIMINA 
+        //LA ENTIDAD CON EL ID INGRSADO
+        [Route("/eliminar/cliente/{id}")]
+        [HttpDelete]
+        public async Task<IActionResult> EliminarCliente(int id)
+        {
+            var clienteExiste = await _context.Clientes.FirstOrDefaultAsync(c => c.ClienteId == id);
+            if (clienteExiste == null)
+            {
+                return BadRequest("El id del Cliente ingresado no se encuentra en la base de datos");
+            }
+            try
+            {
+                await _IClienteRepositorio.Delete(id); 
+            }
+            catch(DbUpdateConcurrencyException ex)
+            {
+                var message = ex.InnerException?.Message;
+
+                return BadRequest($"No es posible eliminar el Cliente: {message}");
+
+            }
+
+            return RedirectToAction(nameof(GetClientes));
+
+        } 
 
     }
 }

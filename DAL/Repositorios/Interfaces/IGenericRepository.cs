@@ -12,8 +12,8 @@ namespace DAL.Repositorios.Interfaces
         Task<List<T>> GetAllAsync(); //Obtiene todos los registros | HttpGET
         Task AddAsync(T entity); //Crea un nuevo registro de tipo T(objeto)
         Task UpdateAsync(T entity);//Actualiza un registro de tipo T(objeto)
-        void Delete(int id);//Elimina un registro por su ID.
+        Task Delete(int id);//Elimina un registro por su ID.
 
-        bool VerificarSiExiste(int id);
+        Task<bool> VerificarSiExiste(int id);
     }
 }

@@ -41,16 +41,18 @@ namespace DAL.Repositorios
 
         public virtual async Task UpdateAsync(TEntity entity)
         {
+           
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
         }
 
-        public virtual void Delete(int id)
+        public virtual async Task Delete(int id)
         {
-            var entityExist =  _dbSet.Find(id);
+            var entityExist =  await _dbSet.FindAsync(id);
             if (entityExist != null)
             {
                 _dbSet.Remove(entityExist);
+                await _context.SaveChangesAsync();
             }
 
         }
@@ -64,9 +66,9 @@ namespace DAL.Repositorios
             _dbSet.Remove(entityToDelete);
         } 
 
-        public virtual bool VerificarSiExiste(int id)
+        public virtual async Task<bool> VerificarSiExiste(int id)
         {
-            var entidad =  _dbSet.Find(id);
+            var entidad = await _dbSet.FindAsync(id);
 
             if (entidad == null)
             {
