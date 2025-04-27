@@ -16,7 +16,6 @@ namespace DAL.Repositorios
 
         private readonly ApplicationDbContext _context;
        
-
         public ClienteRepositorio(ApplicationDbContext context) : base(context)
         {
             _context = context;
