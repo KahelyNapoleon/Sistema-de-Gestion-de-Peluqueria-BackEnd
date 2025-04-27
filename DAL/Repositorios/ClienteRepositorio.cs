@@ -36,7 +36,7 @@ namespace DAL.Repositorios
             }
             catch
             {
-                throw new KeyNotFoundException($"El cliente con id {id} no se encuentra ne la base de datos");
+                throw new KeyNotFoundException($"El cliente con id {id} no se encuentra en la base de datos");
             }
         }
 

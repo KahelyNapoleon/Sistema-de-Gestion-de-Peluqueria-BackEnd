@@ -85,6 +85,9 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
                 return BadRequest(nameof(cliente));
             }
+
+        
+
         }
 
         [Route("/ActualizarCliente/{id}")]
