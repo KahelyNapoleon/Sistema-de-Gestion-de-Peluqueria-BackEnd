@@ -104,16 +104,10 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             {
                 await _IClienteRepositorio.UpdateAsync(cliente);
 
-            }catch(DbUpdateConcurrencyException)
+            }catch(DbUpdateConcurrencyException ex)
             {
-                if (!await _IClienteRepositorio.VerificarSiExiste(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                var message = ex.InnerException?.Message;
+                return BadRequest($"Algo salio mal {message}");
             }
 
             return NoContent();
