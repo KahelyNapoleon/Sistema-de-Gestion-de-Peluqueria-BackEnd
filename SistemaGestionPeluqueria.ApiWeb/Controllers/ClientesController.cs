@@ -124,7 +124,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             var clienteExiste = await _context.Clientes.FirstOrDefaultAsync(c => c.ClienteId == id);
             if (clienteExiste == null)
             {
-                return BadRequest("El id del Cliente ingresado no se encuentra en la base de datos");
+                return BadRequest($"El Cliente con id={id} no existe en la base de datos");
             }
             try
             {

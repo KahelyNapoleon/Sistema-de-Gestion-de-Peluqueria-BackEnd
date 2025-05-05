@@ -184,7 +184,7 @@ public partial class ApplicationDbContext : DbContext
             //EVALUAR
             entity.HasOne(d => d.EstadoTurno).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.EstadoTurnoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Restrict) //Cambio de ClientSetNull
                 .HasConstraintName("FK_Turno_EstadoTurno");
 
             //EVALUAR 

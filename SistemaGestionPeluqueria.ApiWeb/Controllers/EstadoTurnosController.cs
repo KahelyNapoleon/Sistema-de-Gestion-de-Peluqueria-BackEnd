@@ -113,7 +113,6 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             //POR EL REGISTRO DE TURNOS, POR ENDE SI SE QUIERE ELIMINAR SE VERA AFECTADO
             //LOS TURNOS QUE LA ESTEN UTILIZANDO.
             var estadoTurnoExiste = await _context.EstadoTurnos.FirstOrDefaultAsync(e => e.EstadoTurnoId == id);
-
             if (estadoTurnoExiste == null)
             {
                 return BadRequest($"El registro con id={id} no existe");
