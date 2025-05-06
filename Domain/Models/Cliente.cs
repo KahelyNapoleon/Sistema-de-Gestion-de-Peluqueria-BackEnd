@@ -17,5 +17,5 @@ public partial class Cliente
 
     public DateOnly? FechaNacimiento { get; set; }
 
-    public virtual ICollection<Turno>? Turnos { get; set; } = new List<Turno>();
+    public virtual ICollection<Turno> Turnos { get; set; } = new List<Turno>();
 }

@@ -15,7 +15,9 @@ public partial class Servicio
 
     public string? Observacion { get; set; }
 
-    public virtual ICollection<TipoServicio> TipoServicios { get; set; } = new List<TipoServicio>();
+    public int TipoServicioId { get; set; }
+
+    public virtual TipoServicio TipoServicio { get; set; } = null!;
 
     public virtual ICollection<Turno> Turnos { get; set; } = new List<Turno>();
 }

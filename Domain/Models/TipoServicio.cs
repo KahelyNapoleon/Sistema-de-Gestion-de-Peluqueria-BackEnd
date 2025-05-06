@@ -9,7 +9,5 @@ public partial class TipoServicio
 
     public string Descripcion { get; set; } = null!;
 
-    public int ServicioId { get; set; }
-
-    public virtual Servicio Servicio { get; set; } = null!;
+    public virtual ICollection<Servicio> Servicios { get; set; } = new List<Servicio>();
 }

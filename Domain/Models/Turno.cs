@@ -23,7 +23,7 @@ public partial class Turno
 
     public int AdministradorId { get; set; }
 
-    public virtual Administrador Administrador { get; set; } = null!;
+    public virtual Administradore Administrador { get; set; } = null!;
 
     public virtual Cliente Cliente { get; set; } = null!;
 

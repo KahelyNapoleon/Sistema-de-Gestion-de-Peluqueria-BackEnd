@@ -16,7 +16,7 @@ public partial class ApplicationDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Administrador> Administradores { get; set; }
+    public virtual DbSet<Administradore> Administradores { get; set; }
 
     public virtual DbSet<Cliente> Clientes { get; set; }
 
@@ -33,12 +33,11 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<Turno> Turnos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-    }
+    { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Administrador>(entity =>
+        modelBuilder.Entity<Administradore>(entity =>
         {
             entity.HasKey(e => e.AdministradorId).HasName("PK__Administ__2C780D768C04393D");
 
@@ -137,6 +136,11 @@ public partial class ApplicationDbContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.Precio).HasColumnType("decimal(20, 2)");
+
+            entity.HasOne(d => d.TipoServicio).WithMany(p => p.Servicios)
+                .HasForeignKey(d => d.TipoServicioId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Servicio_TipoServicio");
         });
 
         modelBuilder.Entity<TipoServicio>(entity =>
@@ -150,11 +154,6 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-
-            entity.HasOne(d => d.Servicio).WithMany(p => p.TipoServicios)
-                .HasForeignKey(d => d.ServicioId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TipoServicio_Servicio");
         });
 
         modelBuilder.Entity<Turno>(entity =>
@@ -175,25 +174,21 @@ public partial class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_Administradores");
 
-            //VERIFICAR
             entity.HasOne(d => d.Cliente).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.ClienteId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_Cliente");
 
-            //EVALUAR
             entity.HasOne(d => d.EstadoTurno).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.EstadoTurnoId)
-                .OnDelete(DeleteBehavior.Restrict) //Cambio de ClientSetNull
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_EstadoTurno");
 
-            //EVALUAR 
             entity.HasOne(d => d.MetodoPago).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.MetodoPagoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Turno_MetodoPago");
 
-            //
             entity.HasOne(d => d.Servicio).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.ServicioId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

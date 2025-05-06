@@ -26,7 +26,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         public async Task<IActionResult> GetServicios()
         {
             var servicios = await _IServicioRepository.GetAllAsync();
-            if (servicios == null || servicios.Any())
+            if (servicios == null || !servicios.Any())
             {
                 return Ok("Aun no hay registros de Servicios");             
             }
@@ -63,7 +63,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                 var servicioNuevo = new Servicio
                 {
                     Descripcion = servicio.Descripcion,
-                    Precio = servicio.Precio,
+                    Precio = (decimal)servicio.Precio,
                     Duracion = servicio.Duracion,
                     Observacion = servicio.Observacion,
                 };
