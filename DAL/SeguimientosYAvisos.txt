@@ -64,6 +64,11 @@ ADVERTENCIAS
 ------------------------------------------------------------------------------------------------------------------------
 [13/04] Se Completo la creacion de los repositorios y la clase unidad de trabajo.
 
+----------------------------------------------------------------------------------------------------------------
+[6/5/2025]
+1-VER DE INCLUIR LOS DATOS DE TIPO SERVICIO A SERVICIO -> VER SI SE DEBE HACER EN EL REPOSITORIO O EN EL CONTROLADOR
+2-RELACIONADO CON EL PRIMERO SE DEBE PRESTAR ATENCION A LAS ENTIDADES RELACIONADAS EN ESE CASO INCLUIRKAS EN LA 
+RECUPERACION DEL REGISTRO
 
 
 
