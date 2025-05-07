@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DomainLayer.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +16,6 @@ namespace DAL.Repositorios.Interfaces
         Task Delete(int id);//Elimina un registro por su ID.
 
         Task<bool> VerificarSiExiste(int id);
+        Task<T?> BuscarAsync(int id);
     }
 }

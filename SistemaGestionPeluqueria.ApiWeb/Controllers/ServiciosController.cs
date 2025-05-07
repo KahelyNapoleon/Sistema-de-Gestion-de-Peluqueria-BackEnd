@@ -115,7 +115,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                 var servicioEliminar = await _context.Servicios.FirstOrDefaultAsync(s => s.ServicioId == id);
                 if (servicioEliminar == null)
                 {
-                    return NotFound($"El servicio id={id} no existe en la base de datos.");
+                    return NotFound($"El servicio con id={id} no se encuentra en la base de datos. \n Intente con otro id");
                 }
 
                 await _IServicioRepository.Delete(id);

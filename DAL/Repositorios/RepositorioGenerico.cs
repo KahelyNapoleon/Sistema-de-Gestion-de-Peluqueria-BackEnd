@@ -78,6 +78,18 @@ namespace DAL.Repositorios
             return true;
         }
 
+        public virtual async Task<TEntity?> BuscarAsync(int id)
+        {
+            var entidad = await _dbSet.FindAsync(id);
+
+            if (entidad == null)
+            {
+                return null;
+            }
+
+            return entidad;
+        }
+
 
     }
 }
