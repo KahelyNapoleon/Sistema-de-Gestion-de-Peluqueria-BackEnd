@@ -42,7 +42,13 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         {
             try
             {
-                var tipoServicioExiste = await _ITipoServicioRepository.GetByIdAsync(id);
+                //var tipoServicioExiste = await _ITipoServicioRepository.GetByIdAsync(id);
+                var tipoServicioExiste = await _context.TipoServicios
+                    .Include(t => t.Servicios)
+                    .Where(t => t.TipoServicioId == id)
+                    .ToListAsync();
+                    
+
                 if (tipoServicioExiste == null)
                 {
                     return NotFound($"El id:{id} no coincide con un TipoServicio Existente");
@@ -104,13 +110,15 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         {
             try
             {
-                var tipoServicio = await _ITipoServicioRepository.BuscarAsync(id);
+                var tipoServicio = await _context.TipoServicios
+                    .Include(t => t.Servicios)
+                    .FirstOrDefaultAsync(t => t.TipoServicioId == id);
                 if (tipoServicio == null)
                 {
                     return NotFound($"El tipo de servicio con id={id} no existe en la base de datos");
                 }
 
-                await _ITipoServicioRepository.Delete(id);
+                await _ITipoServicioRepository.Delete(tipoServicio.TipoServicioId);
                 return NoContent();
                
             }

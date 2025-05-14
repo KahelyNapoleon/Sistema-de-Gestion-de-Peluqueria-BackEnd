@@ -139,7 +139,7 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasOne(d => d.TipoServicio).WithMany(p => p.Servicios)
                 .HasForeignKey(d => d.TipoServicioId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade) //Cambio a eliminacion en cascada.........
                 .HasConstraintName("FK_Servicio_TipoServicio");
         });
 

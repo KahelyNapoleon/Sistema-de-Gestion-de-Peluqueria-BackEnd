@@ -74,7 +74,13 @@ RECUPERACION DEL REGISTRO
 1-REVISAR LAS TABLAS RELACIONADAS Y LOS ENDPOINTS DE TIPOSERVICIO Y SERVICIO
 2-CADA TIPOSERVICIO TIENE MULTIPLES SERVICIOS.
 ----------------------------------------------------------------------------------------------------------------
-
+[13/5/2025] ALERTA- CORREGIR PARA EVITAR FUTUROS PROBLEMAS OCULTOS.
+1-En aplicationDbContext se cambio a eliminacion en cascada de la configuracion de la entidad servicio, significa que 
+cuando se elimine un tipoServicio tambien se borren los servicios ligados a este por la clave forenea.
+2-La alerta que subyace a esta operacion es la de verificar si en la base de datos esta configurada de esa manera(eliminacion 
+en cascada) por eso al cambiar la configuracion de tal entudad en ApplicationDbContext se iontento generar una migracion 
+para incluir el cambio a la base de datos pero hya un error al intentar iniciar la migracion inicial en DAL/Data.
+---------------------------------------------------------------------------------------------------------------
 
 
 
