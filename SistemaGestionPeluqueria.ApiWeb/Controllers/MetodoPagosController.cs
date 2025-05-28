@@ -1,0 +1,85 @@
+﻿using BLL.Services;
+using BLL.Services.Interfaces;
+using DAL.Repositorios;
+using DomainLayer.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Data.Common;
+using SistemaGestionPeluqueria.ApiWeb.DTOs;
+
+namespace SistemaGestionPeluqueria.ApiWeb.Controllers
+{
+    [Route("[controller]")]
+    [ApiController]
+    public class MetodoPagosController : Controller
+    {
+        private IMetodoPagoService _metodoPagoService;
+
+        public MetodoPagosController(IMetodoPagoService metodoPagoService)
+        {
+            _metodoPagoService = metodoPagoService;
+        }
+
+        [HttpGet]
+        [Route("/metodospagos")]
+        public async Task<IActionResult> GetMetodosPagos()
+        {
+            var metodosPagos = await _metodoPagoService.ObtenerTodos();
+            if (metodosPagos == null || !metodosPagos.Any())
+            {
+                return Ok("Aun no hay registros");
+            }
+
+            return Ok(metodosPagos);
+        }
+
+        [HttpGet]
+        [Route("/metodopago/{id}")]
+        public async Task<IActionResult> GetMetodoPago(int id)
+        {
+            try
+            {
+                var metodoPago = await _metodoPagoService.ObtenerPorId(id); //Falta validar que el Id Exista o sea valido
+                if (metodoPago == null)
+                {
+                    return BadRequest($"El registro con id={id} no se encuentra en la base de datos");
+                }
+
+                return Ok(metodoPago);
+            }
+            catch(DbException ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("/agregar/metodopago")]
+        public async Task<IActionResult> AgregarMetodoPago([FromBody] MetodoPagoDTO metodoPago)
+        {
+
+            var metodoPagoValidar = new MetodoPago{ Descripcion = metodoPago.Descripcion, };
+
+            var metodoPagoCrear = await _metodoPagoService.Crear(metodoPagoValidar);
+            if (!metodoPagoCrear)
+            {
+                return BadRequest("Error de validacion, ingrese un valor a 'Descripcion'");
+            }
+
+            return CreatedAtAction(nameof(GetMetodoPago), new { id = metodoPagoValidar.MetodoPagoId}, metodoPagoValidar);
+
+        }
+
+        //[HttpPatch]
+        //[Route("/metodopago/actualizar/{id}")]
+        //public async Task<IActionResult> ActualizarMetodoPago([FromBody] MetodoPagoActualizarDTO actualizarMetodoPago)
+        //{
+        //    var validarMetodoPago = await _metodoPagoService.ValidarMetodoPago(actualizarMetodoPago);
+        //    if ()
+        //    {
+
+        //    }
+
+        //}
+
+    }
+}

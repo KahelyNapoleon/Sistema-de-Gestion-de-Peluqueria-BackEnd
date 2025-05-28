@@ -7,6 +7,8 @@ using DAL.UnitOfWork;
 using DomainLayer.Models;
 using DAL.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using BLL.Services.Interfaces;
+using BLL.Services;
 
 
 namespace SistemaGestionPeluqueria.ApiWeb
@@ -28,11 +30,15 @@ namespace SistemaGestionPeluqueria.ApiWeb
             builder.Services.AddScoped<IEstadoTurnoRepository, EstadoTurnoRepositorio>();
             builder.Services.AddScoped<IHistorialTurnoRepository, HistorialTurnoRepositorio>();
             builder.Services.AddScoped<IMetodoPagoRepository, MetodoPagoRepositorio>();
+            builder.Services.AddScoped<ITipoServicioRepository, TipoServicioRepositorio>();
             builder.Services.AddScoped<IServicioRepository, ServicioRepositorio>();
             builder.Services.AddScoped<ITurnoRepository, TurnoRepositorio>();
 
             //Unidad de trabajo
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            //Servicios
+            builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
 
             //-----------------------------------------------------------------------------
 

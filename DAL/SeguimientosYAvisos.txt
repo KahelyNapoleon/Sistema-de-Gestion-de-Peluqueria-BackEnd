@@ -81,7 +81,11 @@ cuando se elimine un tipoServicio tambien se borren los servicios ligados a este
 en cascada) por eso al cambiar la configuracion de tal entudad en ApplicationDbContext se iontento generar una migracion 
 para incluir el cambio a la base de datos pero hya un error al intentar iniciar la migracion inicial en DAL/Data.
 ---------------------------------------------------------------------------------------------------------------
-
+Aviso de nota Anterior-
+La migracion se creo ybasicamente es un grupo de comandos que esperan ser ejecutados para realizar cambios en la base de datos
+-Por lo que se vio la configuracion de eliminacion en Cascada esta bien realiada pero se dejara la migracion para futuros
+cambios o modificaciones.
+-MIGRACION ELIMINADA
 
 
 

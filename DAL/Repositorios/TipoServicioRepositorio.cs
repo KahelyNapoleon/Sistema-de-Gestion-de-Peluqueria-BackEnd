@@ -1,4 +1,5 @@
 ﻿using DAL.Data;
+using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositorios
 {
-    public class TipoServicioRepositorio : RepositorioGenerico<TipoServicio>
+    public class TipoServicioRepositorio : RepositorioGenerico<TipoServicio>, ITipoServicioRepository
     {
         private readonly ApplicationDbContext _context;
 

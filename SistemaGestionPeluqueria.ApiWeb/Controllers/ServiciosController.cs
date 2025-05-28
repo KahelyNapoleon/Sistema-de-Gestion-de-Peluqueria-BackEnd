@@ -4,6 +4,7 @@ using DomainLayer.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
+using SistemaGestionPeluqueria.ApiWeb.DTOs;
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 {
@@ -56,7 +57,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
         [HttpPost]
         [Route("/agregar/servicio")]
-        public async Task<IActionResult> AgregarServicio([FromBody] Servicio servicio)
+        public async Task<IActionResult> AgregarServicio([FromBody] ServicioDTO servicio)
         {
             try
             {
@@ -66,6 +67,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                     Precio = (decimal)servicio.Precio,
                     Duracion = servicio.Duracion,
                     Observacion = servicio.Observacion,
+                    TipoServicioId = servicio.TipoServicioId
                 };
 
                 await _IServicioRepository.AddAsync(servicioNuevo);
