@@ -8,7 +8,9 @@ namespace BLL.Services.Interfaces
 {
     public interface IValidationDictionary
     {
-        void AddError(string key, string errorMessage);
-        bool IsValid {  get; }
+        bool Success { get; set; }
+        List<string> Errors { get; set; }
+        //static OperationResult Ok();
+        //static OperationResult Fail(params string[] errors);
     }
 }

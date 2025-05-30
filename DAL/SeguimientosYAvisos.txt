@@ -88,6 +88,9 @@ cambios o modificaciones.
 -MIGRACION ELIMINADA
 
 
-
+---------------------------------------------------------
+[28/5/2025]
+CORREGIR EL TEMA DE MODELSTATEWRAPPER YA QUE EL ENSAMBLADO DE PROGRAM.CS NO LO RECONOCE PARA SU INICIALIZACION
+FUERA DE SU ENTORNO.
 
 

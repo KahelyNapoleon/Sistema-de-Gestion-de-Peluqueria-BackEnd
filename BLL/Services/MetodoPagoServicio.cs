@@ -12,12 +12,11 @@ namespace BLL.Services
     public class MetodoPagoServicio : IMetodoPagoService
     {
         private readonly IMetodoPagoRepository _metodoPagoRepository;
-        private IValidationDictionary _validationDictionary;
+       
 
-        public MetodoPagoServicio(IMetodoPagoRepository metodoPagoRepository, IValidationDictionary validationDictionary) //: base(metodoPagoRepository, validationDictionary) 
+        public MetodoPagoServicio(IMetodoPagoRepository metodoPagoRepository) //: base(metodoPagoRepository, validationDictionary) 
         {
             _metodoPagoRepository = metodoPagoRepository;
-            _validationDictionary = validationDictionary;
         }
 
         public async Task<IEnumerable<MetodoPago>> ObtenerTodos()
@@ -30,31 +29,43 @@ namespace BLL.Services
             return await _metodoPagoRepository.GetByIdAsync(id);
         }
 
-        public async Task<bool> Crear(MetodoPago metodoPagoACrear)
+        public async Task<OperationResult<MetodoPago>> Crear(MetodoPago metodoPagoACrear)
         {
-            if (!ValidarMetodoPago(metodoPagoACrear))
+            var validacionMetodoPagoACrear = ValidarMetodoPago(metodoPagoACrear);
+
+            if (!validacionMetodoPagoACrear.Success) //Corregir
             {
-                return false;
+                return validacionMetodoPagoACrear;
             }
 
             await _metodoPagoRepository.AddAsync(metodoPagoACrear);
-            return true;
+            return OperationResult<MetodoPago>.Ok(metodoPagoACrear);
         }
 
-        public async Task<bool> Actualizar(MetodoPago metodoPagoActualizar)
+        public async Task<OperationResult<MetodoPago>> Actualizar(MetodoPago metodoPagoValidar, int id)
         {
-            if (!ValidarMetodoPago(metodoPagoActualizar))
+            var validacionMetodoPagoActualizar = ValidarMetodoPago(metodoPagoValidar); 
+            if (!validacionMetodoPagoActualizar.Success) //Corregir
             {
-                return false;
+                return validacionMetodoPagoActualizar;
             }
 
-            await _metodoPagoRepository.UpdateAsync(metodoPagoActualizar);
-            return true;
+            var metodoPagoExiste = await _metodoPagoRepository.BuscarAsync(id);
+            if (metodoPagoExiste == null)
+            {
+                return OperationResult<MetodoPago>.Fail("El registro no se encuentra en la base de datos.");
+            }
+
+            metodoPagoExiste.Descripcion = metodoPagoValidar.Descripcion;
+            await _metodoPagoRepository.UpdateAsync(metodoPagoExiste);
+
+            return OperationResult<MetodoPago>.Ok(metodoPagoExiste);
         }
 
         public async Task<bool> Eliminar(int id)
         {
-            if (await _metodoPagoRepository.VerificarSiExiste(id))
+            
+            if (!await _metodoPagoRepository.VerificarSiExiste(id))
             {
                 return false;
             }
@@ -66,12 +77,22 @@ namespace BLL.Services
         /// VALIDA LOS CAMPOS DE LA ENTIDAD
         /// </summary>
         /// <param name="metodoPagoValidar"></param>
-        /// <returns>VERDADERO O FALOS EN CASO DE QUE SE HAYA CAPTURADO UN ERROR EN LA VALIDACION DE UN SOLO CAMPO</returns>
-        public bool ValidarMetodoPago(MetodoPago metodoPagoValidar)
+        /// <returns>Retorna un resultado de tipo OperationResult<MetodoPago>, que pueden ser, Ok():Success=True | Fail(Params string[] errors): Success:False y Error=errors | Un tipo MetodoPago</returns>
+        public OperationResult<MetodoPago> ValidarMetodoPago(MetodoPago metodoPagoValidar)
         {
-            if (metodoPagoValidar.Descripcion.Trim().Length == 0) _validationDictionary.AddError("Descripcion", "La descripcion es requerida");
+            var errores = new List<string>();
 
-            return _validationDictionary.IsValid;
+            if (string.IsNullOrEmpty(metodoPagoValidar.Descripcion))
+                errores.Add("La descripcion es requerida");
+
+            if (errores.Any())
+            {
+                var resultado = OperationResult<MetodoPago>.Fail(errores.ToArray());
+                return resultado;
+            }
+               
+           
+            return OperationResult<MetodoPago>.Ok(metodoPagoValidar);
         }
 
     }

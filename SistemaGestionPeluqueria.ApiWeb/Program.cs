@@ -39,6 +39,8 @@ namespace SistemaGestionPeluqueria.ApiWeb
 
             //Servicios
             builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
+            //Model StateDictionary
+            builder.Services.AddScoped<IValidationDictionary, OperationResult>();
 
             //-----------------------------------------------------------------------------
 
@@ -48,7 +50,8 @@ namespace SistemaGestionPeluqueria.ApiWeb
 
             builder.Services.AddControllers();
 
-            var app = builder.Build();
+            var app = builder.Build();  //CORREGIR EL TEMA DE MODELSTATEWRAPPED YA QYE EL ENSAMBLADO 
+            // NO LO RECONOCE FUERA DEL MISMO EN LA CAPA DE SERVICIO.
 
             //// Configure the HTTP request pipeline.
             //if (app.Environment.IsDevelopment())

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace BLL.Services.Interfaces
 {
-    public interface IMetodoPagoService //: IGenericService<MetodoPago> 
+    public interface IMetodoPagoService 
     {
         Task<IEnumerable<MetodoPago>> ObtenerTodos();
         Task<MetodoPago?> ObtenerPorId(int id);
-        Task<bool> Crear(MetodoPago metodoPago);
-        Task<bool> Actualizar(MetodoPago metodoPago);
+        Task<OperationResult<MetodoPago>> Crear(MetodoPago metodoPago);
+        Task<OperationResult<MetodoPago>> Actualizar(MetodoPago metodoPago, int id);
         Task<bool> Eliminar(int id);
-        bool ValidarMetodoPago(MetodoPago metodoPago);
+        OperationResult<MetodoPago> ValidarMetodoPago(MetodoPago metodoPago);
     }
 }

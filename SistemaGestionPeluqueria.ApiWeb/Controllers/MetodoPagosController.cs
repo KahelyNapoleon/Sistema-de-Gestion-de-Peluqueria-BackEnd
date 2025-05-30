@@ -5,6 +5,8 @@ using DomainLayer.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.Common;
 using SistemaGestionPeluqueria.ApiWeb.DTOs;
+using Microsoft.EntityFrameworkCore;
+using DAL.Data;
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 {
@@ -13,10 +15,12 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
     public class MetodoPagosController : Controller
     {
         private IMetodoPagoService _metodoPagoService;
+        
 
-        public MetodoPagosController(IMetodoPagoService metodoPagoService)
+        public MetodoPagosController(IMetodoPagoService metodoPagoService, ApplicationDbContext context)
         {
-            _metodoPagoService = metodoPagoService;
+            //_metodoPagoService = metodoPagoService;
+            _metodoPagoService = new MetodoPagoServicio(new MetodoPagoRepositorio(context), new OperationResult());
         }
 
         [HttpGet]
@@ -69,17 +73,44 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
         }
 
-        //[HttpPatch]
-        //[Route("/metodopago/actualizar/{id}")]
-        //public async Task<IActionResult> ActualizarMetodoPago([FromBody] MetodoPagoActualizarDTO actualizarMetodoPago)
-        //{
-        //    var validarMetodoPago = await _metodoPagoService.ValidarMetodoPago(actualizarMetodoPago);
-        //    if ()
-        //    {
+        [HttpPatch]
+        [Route("/metodopago/actualizar/{id}")]
+        public async Task<IActionResult> ActualizarMetodoPago([FromBody] MetodoPago actualizarMetodoPago, int id)
+        {
+            var validarMetodoPago = await _metodoPagoService.Actualizar(actualizarMetodoPago, id);
+            if (!validarMetodoPago)
+            {
+                return BadRequest("Error al actualizar el metodo pago.");
+            }
 
-        //    }
+            return NoContent();
+        }
 
-        //}
+        [HttpDelete]
+        [Route("/metodopago/eliminar/{id}")]
+        public async Task<IActionResult> EliminarMetodoPago(int id)
+        {
+            try
+            {
+                var metodoPagoEliminar = await _metodoPagoService.Eliminar(id);
+                if (!metodoPagoEliminar)
+                {
+                    return BadRequest($"No existe un registro con id={id}");
+                }
+
+                return NoContent();
+
+
+            }
+            catch(DbUpdateConcurrencyException ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+            catch (DbException ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
 
     }
 }
