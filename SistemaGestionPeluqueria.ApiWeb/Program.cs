@@ -39,8 +39,8 @@ namespace SistemaGestionPeluqueria.ApiWeb
 
             //Servicios
             builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
-            //Model StateDictionary
-            builder.Services.AddScoped<IValidationDictionary, OperationResult>();
+      
+         
 
             //-----------------------------------------------------------------------------
 

@@ -14,13 +14,12 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
     [ApiController]
     public class MetodoPagosController : Controller
     {
-        private IMetodoPagoService _metodoPagoService;
+        private readonly IMetodoPagoService _metodoPagoService;
         
 
-        public MetodoPagosController(IMetodoPagoService metodoPagoService, ApplicationDbContext context)
+        public MetodoPagosController(IMetodoPagoService metodoPagoService)
         {
-            //_metodoPagoService = metodoPagoService;
-            _metodoPagoService = new MetodoPagoServicio(new MetodoPagoRepositorio(context), new OperationResult());
+           _metodoPagoService = metodoPagoService;
         }
 
         [HttpGet]
@@ -64,9 +63,9 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             var metodoPagoValidar = new MetodoPago{ Descripcion = metodoPago.Descripcion, };
 
             var metodoPagoCrear = await _metodoPagoService.Crear(metodoPagoValidar);
-            if (!metodoPagoCrear)
+            if (!metodoPagoCrear.Success)
             {
-                return BadRequest("Error de validacion, ingrese un valor a 'Descripcion'");
+                return BadRequest(metodoPagoCrear.Errors);
             }
 
             return CreatedAtAction(nameof(GetMetodoPago), new { id = metodoPagoValidar.MetodoPagoId}, metodoPagoValidar);
@@ -78,9 +77,9 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         public async Task<IActionResult> ActualizarMetodoPago([FromBody] MetodoPago actualizarMetodoPago, int id)
         {
             var validarMetodoPago = await _metodoPagoService.Actualizar(actualizarMetodoPago, id);
-            if (!validarMetodoPago)
+            if (!validarMetodoPago.Success)
             {
-                return BadRequest("Error al actualizar el metodo pago.");
+                return BadRequest(validarMetodoPago.Errors);
             }
 
             return NoContent();
