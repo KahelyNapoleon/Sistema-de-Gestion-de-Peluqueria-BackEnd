@@ -9,7 +9,7 @@ using System.Web;
 
 namespace BLL.Services
 {
-    public class OperationResult<T> //:IValidationDictionary
+    public class OperationResult<T> 
     {
         //  ARREGLAR LOS ERRORES DE COMPILACION
         public bool Success { get; set; } = true;

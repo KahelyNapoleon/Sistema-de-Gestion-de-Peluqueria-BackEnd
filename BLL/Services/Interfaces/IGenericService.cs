@@ -14,8 +14,6 @@ namespace BLL.Services.Interfaces
         void Crear(T entity);
         void Actualizar(T entity);
         void Eliminar(int id);
-        
-        
 
     }
 }

@@ -9,5 +9,7 @@ namespace DAL.Repositorios.Interfaces
 {
     public interface IAdministradorRepository : IGenericRepository<Administrador>
     {
+        Task<Administrador?> ObtenerPorUsuarioCorreoAsync(string usuarioCorreo);
+        Task<bool> ExisteCorreo(string correo);
     }
 }
