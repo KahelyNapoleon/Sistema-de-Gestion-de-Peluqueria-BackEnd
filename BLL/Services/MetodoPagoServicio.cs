@@ -19,23 +19,38 @@ namespace BLL.Services
             _metodoPagoRepository = metodoPagoRepository;
         }
 
+        /// <summary>
+        /// RECUPERA TODOS LOS REGISTROS DETALLADOS DE LA BASE DE DATOS 
+        /// </summary>
+        /// <returns> LISTA DE REGISTROS DE TIPO METODOPAGO </returns>
         public async Task<IEnumerable<MetodoPago>> ObtenerTodos()
         {
             return await _metodoPagoRepository.GetAllAsync();
         }
 
+        /// <summary>
+        /// OBTIENE UN REGISTRO POR MEDIO DE SU ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns> DICHA ENTIDAD QUE COINCIDA CON EL ID INGRESADO </returns>
         public async Task<MetodoPago?> ObtenerPorId(int id)
         {
             return await _metodoPagoRepository.GetByIdAsync(id);
         }
 
+        /// <summary>
+        /// CREA UN NUEVO REGISTRO DE TIPO METODOPAGO
+        /// </summary>
+        /// <param name="metodoPagoACrear"> UN OBJETO DE TIPO MetodoPago </param>
+        /// <returns> RETORNARA UN RESULTADO DE TIPO OperationResult<MetodoPago>  </returns>
         public async Task<OperationResult<MetodoPago>> Crear(MetodoPago metodoPagoACrear)
         {
             var validacionMetodoPagoACrear = ValidarMetodoPago(metodoPagoACrear);
 
-            if (!validacionMetodoPagoACrear.Success) //Corregir
+            if (!validacionMetodoPagoACrear.Success) //Corregir?  Si el estado de exito del metodo ValidarMetodoPago() es 'False' entonces
+                                                       //         ingresa a la condicion y retorna el tipo 
             {
-                return validacionMetodoPagoACrear;
+                return validacionMetodoPagoACrear;   //
             }
 
             await _metodoPagoRepository.AddAsync(metodoPagoACrear);
@@ -57,21 +72,31 @@ namespace BLL.Services
             }
 
             metodoPagoExiste.Descripcion = metodoPagoValidar.Descripcion;
+
             await _metodoPagoRepository.UpdateAsync(metodoPagoExiste);
 
             return OperationResult<MetodoPago>.Ok(metodoPagoExiste);
         }
 
-        public async Task<bool> Eliminar(int id)
+        public async Task<OperationResult<string>> Eliminar(int id)
         {
             
             if (!await _metodoPagoRepository.VerificarSiExiste(id))
             {
-                return false;
+                return OperationResult<string>.Fail("Metodo que quieres eliminar no existe!"); ;
             }
             await _metodoPagoRepository.Delete(id);
-            return true;
+            return OperationResult<string>.Ok("Eliminado con Exito!");
         }
+
+
+
+
+            //VALIDACION DE UN OBJETO MetodoPago... ... ...
+
+
+
+
 
         /// <summary>
         /// VALIDA LOS CAMPOS DE LA ENTIDAD
@@ -87,7 +112,7 @@ namespace BLL.Services
 
             if (errores.Any())
             {
-                var resultado = OperationResult<MetodoPago>.Fail(errores.ToArray());
+                var resultado = OperationResult<MetodoPago>.Fail(errores.ToArray());//CONVIERTE UN TIPO LIST<T> EN UN ARRAY...
                 return resultado;
             }
                

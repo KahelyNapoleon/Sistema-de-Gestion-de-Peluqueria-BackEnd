@@ -23,7 +23,7 @@ namespace DAL.Repositorios
         public async Task<Administrador?> ObtenerPorUsuarioCorreoAsync(string usuarioCorreo)
         {
             return await _context.Administradores
-                .FirstOrDefaultAsync(a => a.Usuario == usuarioCorreo || a.Correo == usuarioCorreo);
+                        .FirstOrDefaultAsync(a => a.Usuario == usuarioCorreo || a.Correo == usuarioCorreo);
         }
 
         public async Task<bool> ExisteCorreo(string correo)

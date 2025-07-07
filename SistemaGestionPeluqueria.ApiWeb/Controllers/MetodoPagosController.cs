@@ -14,6 +14,8 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
     [ApiController]
     public class MetodoPagosController : Controller
     {
+        //CONSTANTE EN TIEMPO DE EJECUCION SIGNIFICA QUE SE LE PUEDE OTORGAR UN VALOR DINAMICO
+        //EN ESTE CASO EL VALOR SE LOS DAMOS A TRAVES DEL CONSTRUCTOR...
         private readonly IMetodoPagoService _metodoPagoService;
         
 
@@ -62,6 +64,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
             var metodoPagoValidar = new MetodoPago{ Descripcion = metodoPago.Descripcion, };
 
+            //metodoPagoCrear sera de tipo OperationResult<MetodoPago>
             var metodoPagoCrear = await _metodoPagoService.Crear(metodoPagoValidar);
             if (!metodoPagoCrear.Success)
             {
@@ -92,9 +95,9 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             try
             {
                 var metodoPagoEliminar = await _metodoPagoService.Eliminar(id);
-                if (!metodoPagoEliminar)
+                if (!metodoPagoEliminar.Success) //Si el resultado booleano del tipo opResult es false.
                 {
-                    return BadRequest($"No existe un registro con id={id}");
+                    return NotFound(metodoPagoEliminar.Errors);
                 }
 
                 return NoContent();

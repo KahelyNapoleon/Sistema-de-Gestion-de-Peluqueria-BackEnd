@@ -23,9 +23,13 @@ namespace DAL.Repositorios
             _dbSet = _context.Set<TEntity>();
         }
 
+        /// <summary>
+        /// OBTIENE Y CONVIERTE A LISTA LOS REGISTROS DE DICHA ENTIDAD.
+        /// </summary>
+        /// <returns>UNA LISTA DE REGISTROS</returns>
         public virtual async Task<List<TEntity>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.ToListAsync(); 
         }
 
         public virtual async Task<TEntity?> GetByIdAsync(int id)

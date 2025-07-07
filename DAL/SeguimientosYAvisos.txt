@@ -94,3 +94,16 @@ CORREGIR EL TEMA DE MODELSTATEWRAPPER YA QUE EL ENSAMBLADO DE PROGRAM.CS NO LO R
 FUERA DE SU ENTORNO.
 
 
+---------------------------------------------------------
+[7/7/25] 
+-HUBO CORRECCIONES EN EL SERVICIO ADMINISTRADOR. 
+-SE SUGIERE QUE LOS ADMINISTRADORES TENGAS ROLES COMO : superAdmin, editorAdmin, soloLecturaAdmin. para separar responsabilidades.
+-Por otro lado, se corrigieron metodos como la de validacion que perseguia una logica incorrecta en la validacion
+de los campos de administrador(correo,usuario,contrasenia).
+-Tambien se corrigio el metodo actualizar que no actualizaba los campos editados de admninistrador(usuario, correo, contrasenia)
+
+ESE FUE UN SEGUIMIENTO RAPIDO PARA VERIFICAR QUE TODO SE ENCUENTRE CORRECTAMENTE, AUN HAY MAS POR HACER
+LA IA NOS SUGIRIO QUE FALTA VALIDAR USUARIOS POR TOKENS Y/CON JWT, TAMBIEN LA APLICACION DE LOS DTOs PARA DIFERENTES
+TIPOS DE VALIDACIONES (CREAR, ACTUALIZAR, DETALLES, INICIAR SESION) 
+PERO SE DEBERA TERMINAR CON EL ESQUELETO DEL CRUD DE LA APLICACION
+ANTES DE CONTINUAR AVANZANDO CON LA API.
