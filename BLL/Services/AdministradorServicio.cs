@@ -52,12 +52,6 @@ namespace BLL.Services
 
         public async Task<OperationResult<Administrador>> Actualizar(Administrador admin, int id)
         {
-            var adminValidar = ValidarAdministrador(admin);
-            if (!adminValidar.Success)//Si entra en esta condicion el resultado de la validacion
-            {                         // significa que algo salio mal
-                return adminValidar; //Aca retorna el tipo OoperationResilt<Admin> pero con una lista de errores
-            }                        //y la prop. success => false.
-
 
             var adminExiste = await _administradorRepository.BuscarAsync(id);
             if (adminExiste == null)
@@ -65,11 +59,17 @@ namespace BLL.Services
                 return OperationResult<Administrador>.Fail("El registro no existe en la base de datos.");
             }
 
+            var adminValidar = ValidarAdministrador(admin);
+            if (!adminValidar.Success)//Si entra en esta condicion el resultado de la validacion
+            {                         // significa que algo salio mal
+                return adminValidar; //Aca retorna el tipo OoperationResilt<Admin> pero con una lista de errores
+            }                        //y la prop. success => false.
+
             //Asignacion de los valores del parametro de entrada 'admin' al objeto adminExiste para aplicar
             //los cambios.
             adminExiste.Correo = admin.Correo;
             adminExiste.Usuario = admin.Usuario;
-
+            //Comprueba si la contrasenia ah sido actualizada tambien...
             if(admin.Contrasena != adminExiste.Contrasena) adminExiste.Contrasena = PasswordHasher.Hashear(admin.Contrasena);
 
             await _administradorRepository.UpdateAsync(adminExiste);
@@ -124,6 +124,11 @@ namespace BLL.Services
 
 
         //Validar Administrador
+        /// <summary>
+        /// VALIDA CADA CAMPO DEL MODELO DE ADMNISTRADOR
+        /// </summary>
+        /// <param name="administrador"></param>
+        /// <returns></returns>
         public OperationResult<Administrador> ValidarAdministrador(Administrador administrador)
         {
             var errores = new List<string>();

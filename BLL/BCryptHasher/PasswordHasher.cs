@@ -14,6 +14,7 @@ namespace BLL.BCryptHasher
             return BCrypt.Net.BCrypt.HashPassword(contrasenia);
         }
 
+        //Metodo utilizado en el inicio de sesion.
         public static bool Verificar(string inputPassword, string saveHash)
         {
             return BCrypt.Net.BCrypt.Verify(inputPassword, saveHash);

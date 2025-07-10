@@ -71,8 +71,10 @@ namespace BLL.Services
                 return OperationResult<MetodoPago>.Fail("El registro no se encuentra en la base de datos.");
             }
 
+            //Unico Campo que se debe actualizar de MetodoPago - Solo la descripcion del metodo
             metodoPagoExiste.Descripcion = metodoPagoValidar.Descripcion;
 
+            //Se Guarda en la base de datos a traves del repositorio
             await _metodoPagoRepository.UpdateAsync(metodoPagoExiste);
 
             return OperationResult<MetodoPago>.Ok(metodoPagoExiste);
