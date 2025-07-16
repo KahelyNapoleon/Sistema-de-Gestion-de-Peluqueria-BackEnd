@@ -10,6 +10,10 @@ using System.Text.RegularExpressions;
 
 namespace BLL.Services
 {
+
+    //VER COMO DESACOPLAR EL METODO DE VALIDACION DE CLIENTE PARA FUTURAS MIGRACIONES...
+    //ENTENDER BIEN EL FLUJO Y REEVEER ALGUNAS ACCIONES DE LOS METODOS, CREO QUE PUEDEN MEJORAR...
+    //VER EL TEMA DEL MIDDLEWARE SI ES NECESARIO INTEGRARLO AHORA O LUEGO DE TERMINAR LOS CRUDs DE CADA MODELO.
     public class ClienteServicio : IClienteService
     {
         private readonly IClienteRepository _clienteRepository;
@@ -19,9 +23,15 @@ namespace BLL.Services
             _clienteRepository = clienteRepository;
         }
 
-        public async Task<IEnumerable<Cliente>> ObtenerTodos()
+        public async Task<OperationResult<IEnumerable<Cliente>>> ObtenerTodos()
         {
-            return await _clienteRepository.GetAllAsync();
+            var clientes = await _clienteRepository.GetAllAsync();
+            if ( clientes == null || !clientes.Any() )
+            {
+                return OperationResult<IEnumerable<Cliente>>.Fail("Aun no clientes registrados!");
+            }
+
+            return OperationResult<IEnumerable<Cliente>>.Ok(clientes);
         }
 
         public async Task<OperationResult<Cliente>> ObtenerPorId(int id)
@@ -29,7 +39,7 @@ namespace BLL.Services
             var clienteExiste = await _clienteRepository.VerificarSiExiste(id);
             if (!clienteExiste)
             {
-                return OperationResult<Cliente>.Fail($"EL Cliente con id={id} no Existe");
+                return OperationResult<Cliente>.Fail($"El cliente con id {id} no existe");
             }
 
             var cliente = await _clienteRepository.GetByIdAsync(id);
@@ -41,10 +51,56 @@ namespace BLL.Services
         {
             var validarCliente = ValidarCliente(cliente);
             if (!validarCliente.Success)
-                return OperationResult<Cliente>.Fail(validarCliente.Errors!.ToArray());
+                return validarCliente;//Los errores de la validacion? 
 
-            cliente.
+            await _clienteRepository.AddAsync(cliente);
+
+            return OperationResult<Cliente>.Ok(cliente);
         }
+
+
+        public async Task<OperationResult<Cliente>> Actualizar(Cliente cliente, int id)
+        {
+            var clienteExiste = await _clienteRepository.BuscarAsync(id);
+            if (clienteExiste == null)
+            {
+                return OperationResult<Cliente>.Fail("El id no corresponde con un cliente existente");
+            }
+
+            var clienteValidar = ValidarCliente(cliente);
+            if (!clienteValidar.Success)
+            {
+                return clienteValidar;
+            }
+
+            clienteExiste.Nombre = cliente.Nombre;
+            clienteExiste.Apellido = cliente.Apellido;
+            clienteExiste.NroCelular = cliente.NroCelular;
+            clienteExiste.CorreoElectronico = cliente.CorreoElectronico;
+            clienteExiste.FechaNacimiento = cliente.FechaNacimiento;
+
+            await _clienteRepository.UpdateAsync(clienteExiste);
+
+            return OperationResult<Cliente>.Ok(clienteExiste);
+
+        }
+
+        public async Task<OperationResult<bool>> Eliminar(int id)
+        {
+            var clienteExiste = await _clienteRepository.VerificarSiExiste(id);
+            if (!clienteExiste)
+            {
+                return OperationResult<bool>.Fail("Id Incorrecto.");
+                
+            }
+
+            await _clienteRepository.Delete(id);
+
+            return OperationResult<bool>.Ok(true);
+        }
+
+
+
 
 
 

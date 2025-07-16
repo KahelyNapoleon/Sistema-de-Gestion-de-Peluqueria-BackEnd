@@ -50,17 +50,18 @@ namespace DAL.Repositorios
             await _context.SaveChangesAsync();
         }
 
+        //REVISAR
         public virtual async Task Delete(int id)
         {
             var entityExist =  await _dbSet.FindAsync(id);
             if (entityExist != null)
-            {
-                _dbSet.Remove(entityExist);
+            {                                                        //VER SI EL REPOSITORIO SOLAMENTE DEBE ENCARGARSE DE ELIMNAR EL REGISTRO
+                _dbSet.Remove(entityExist);                          //Y NO DE BUSCAR EL REGISTRO Y VERIFICAR SI EXISTE O NO.
                 await _context.SaveChangesAsync();
             }
 
         }
-
+        //REVISAR
         public virtual void Delete(TEntity entityToDelete)
         {
             if(_context.Entry(entityToDelete).State == EntityState.Detached)
@@ -81,6 +82,7 @@ namespace DAL.Repositorios
 
             return true;
         }
+
 
         public virtual async Task<TEntity?> BuscarAsync(int id)
         {

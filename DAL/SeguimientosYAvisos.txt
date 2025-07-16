@@ -109,3 +109,17 @@ LA IA NOS SUGIRIO QUE FALTA VALIDAR USUARIOS POR TOKENS Y/CON JWT, TAMBIEN LA AP
 TIPOS DE VALIDACIONES (CREAR, ACTUALIZAR, DETALLES, INICIAR SESION) 
 PERO SE DEBERA TERMINAR CON EL ESQUELETO DEL CRUD DE LA APLICACION
 ANTES DE CONTINUAR AVANZANDO CON LA API.
+
+---------------------------------------------------------
+[16/7/25]
+-Se finalizo con los metodos del servicio de EstadoTurno.
+
+Observaciones, Hay 2:
+1-Que el metodo de eliminacion de parte del servicio retorne un bool y true como objeto al tipo OperationResult<T>
+me hace un poco de ruido, ver si es mejor retornar el Registro que se elimino, en este caso un objeto de tipo EstadoTurno
+o Si es mejor retornar un mensaje que verifique que la eliminacion fue correcta.
+2-Por otro lado en los metodos 'Delete' en la implementacion de la clase Generica de 'RepositorioGenerico' observar que 
+se realiza una verificacion antes de eliminar el registro de la entidad, estoy seguro que va encontra de la responsabilidad 
+de un repositorio que solo debe efectuar los cambios en la base de datos sin codigo extra que verifique si esos datos
+existen o no.
+
