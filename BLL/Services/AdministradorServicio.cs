@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BLL.BCryptHasher;
+using BLL.Services.OperationResult;
 
 namespace BLL.Services
 {
@@ -20,14 +21,27 @@ namespace BLL.Services
             _administradorRepository = administradorRepository;
         }
 
-        public async Task<IEnumerable<Administrador>> ObtenerTodos()
+        public async Task<OperationResult<IEnumerable<Administrador>>> ObtenerTodos()
         {
-            return await _administradorRepository.GetAllAsync();
+            var administradores = await _administradorRepository.GetAllAsync();
+            if (!administradores.Any())
+            {
+                return OperationResult<IEnumerable<Administrador>>.Fail("Aun no hay Administradores registrados.");
+            }
+
+            return OperationResult<IEnumerable<Administrador>>.Ok(administradores);
+       
         }
 
-        public async Task<Administrador?> ObtenerPorId(int id)
+        public async Task<OperationResult<Administrador>> ObtenerPorId(int id)
         {
-            return await _administradorRepository.GetByIdAsync(id);
+            var admin = await _administradorRepository.GetByIdAsync(id);
+            if (admin == null)
+            {
+                return OperationResult<Administrador>.Fail($"Id {id} no existe en los registros.");
+            }
+
+            return OperationResult<Administrador>.Ok(admin);
         }
 
         /// <summary>
@@ -81,15 +95,15 @@ namespace BLL.Services
 
         public async Task<OperationResult<bool>> Eliminar(int id)
         {
-            var administradorExiste = await _administradorRepository.VerificarSiExiste(id);
-            if (!administradorExiste)//Si no Existe enviar un mensaje de Error
+            var administradorExiste = await _administradorRepository.GetByIdAsync(id);
+            if (administradorExiste == null)//Si no Existe enviar un mensaje de Error
             {
                 return OperationResult<bool>.Fail("El id del Administrador no se encuentra en los registros!");
             }
 
             //Si Existe el registro, lo elimina
             //Y retorna un tipo OperationResult<bool> con las propiedades {Success= True, Data= True}.
-            await _administradorRepository.Delete(id);
+            _administradorRepository.Delete(administradorExiste);
             return OperationResult<bool>.Ok(true);
         }
 

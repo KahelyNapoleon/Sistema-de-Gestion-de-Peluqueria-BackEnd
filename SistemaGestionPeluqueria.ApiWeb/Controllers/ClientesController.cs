@@ -1,12 +1,10 @@
-﻿
-
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using DAL.Data;
 using DAL.Repositorios.Interfaces;
-using DAL.Repositorios;
+using BLL.Services.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
+using SistemaGestionPeluqueria.ApiWeb.DTOs;
 
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
@@ -16,55 +14,48 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
     public class ClientesController : Controller
     {
 
-        private readonly IClienteRepository _IClienteRepositorio;
-        private readonly ApplicationDbContext _context;
+        private readonly IClienteService _IClienteService;
 
-        public ClientesController(IClienteRepository IClienteRepositorio, ApplicationDbContext context)
+        public ClientesController(IClienteService clienteService)
         {
-            _IClienteRepositorio = IClienteRepositorio;
-            _context = context;
+            _IClienteService = clienteService;
         }
+
+
 
         [HttpGet]
-        [Route("/Clientes")]
+        [Route("/api/clientes")]
         public async Task<IActionResult> GetClientes()
         {
-            var clientes = await _IClienteRepositorio.GetAllAsync();
-            return Ok(clientes);
+            var clientes = await _IClienteService.ObtenerTodos();
+            if (!clientes.Success)
+            {
+                return BadRequest(clientes.Errors);
+            }
+            return Ok(clientes.Data);
         }
+
+
 
         [HttpGet]
         [Route("/Cliente/{id}")]
         public async Task<IActionResult> GetCliente(int id)
         {
-            try
+            var cliente = await _IClienteService.ObtenerPorId(id);
+            if (!cliente.Success)
             {
-                var cliente = await _IClienteRepositorio.GetByIdAsync(id);
-                return Ok(cliente);
+                return BadRequest(cliente.Errors);
             }
-            catch(Exception ex)
-            {
-                //var problemDetails = new ProblemDetails
-                //{
-                //    Title = "Cliente no encontrado",
-                //    Status = StatusCodes.Status404NotFound,
-                //    Detail = ex.Message,
-                //    Instance = HttpContext.Request.Path
-                //};
 
-                //return NotFound(problemDetails); // Retorna JSON con estructura estándar
-                return BadRequest(ex.Message);
-            }
-            
+            return Ok(cliente.Data);
         }
 
 
         [HttpPost]
         [Route("/AgregarCliente")]
-        public async Task<IActionResult> AgregarCliente([FromBody] Cliente cliente)
+        public async Task<IActionResult> AgregarCliente([FromBody] ClienteDTO cliente)
         {
-            try
-            {
+            
                 var nuevoCliente = new Cliente
                 {
                     Nombre = cliente.Nombre,
@@ -74,35 +65,47 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                     CorreoElectronico = cliente.CorreoElectronico
                 };
 
-                await _IClienteRepositorio.AddAsync(nuevoCliente);
+                var resultadoCliente = await _IClienteService.Crear(nuevoCliente);
 
-                return Ok(nuevoCliente);
-
-
-            }catch(Exception ex)
+            if (!resultadoCliente.Success)
             {
-                Console.WriteLine(ex.Message);
-
-                return BadRequest(nameof(cliente));
+                return BadRequest(resultadoCliente.Errors);
             }
 
-        
-
+            return CreatedAtAction(nameof(GetCliente), new { id = nuevoCliente.ClienteId }, nuevoCliente);
         }
 
+
+        /// <summary>
+        /// Actualizacion datos de un Cliente registrado.
+        /// </summary>
+        /// <param name="id">ClienteId de la tabla clientes- se utiliza para buscarlo en la DB</param>
+        /// <param name="cliente">Datos que la UI envia para actualizar los datos.</param>
+        /// <returns>Un accionResult </returns>
         [Route("/ActualizarCliente/{id}")]
         [HttpPatch]
-        public async Task<IActionResult> ActualizarCliente(int id, [FromBody] Cliente cliente)
+        public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ClienteDTO cliente)
         {
-
-            if (id != cliente.ClienteId)
-            {
-                return BadRequest("El id no coincide con el Id del Cliente");
+            //buscar Id del cliente
+            var clienteExiste = await _IClienteService.ObtenerPorId(id);
+            if (!clienteExiste.Success) //Aqui el servicio que obtiene el cliente por id, si el id no existe
+            {                           //retorna un OperationResult<Cliente>.Fail($"El cliente con id {id} no existe")
+                return NotFound(clienteExiste.Errors);
             }
 
             try
             {
-                await _IClienteRepositorio.UpdateAsync(cliente);
+                var clienteActualizar = new Cliente
+                {
+                    ClienteId = id,
+                    Nombre = cliente.Nombre,
+                    Apellido = cliente.Apellido,
+                    NroCelular = cliente.NroCelular,
+                    FechaNacimiento = cliente.FechaNacimiento,
+                    CorreoElectronico = cliente.CorreoElectronico
+                };
+
+                await _IClienteService.Actualizar(clienteActualizar, id);
 
             }catch(DbUpdateConcurrencyException ex)
             {
@@ -121,14 +124,18 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         [HttpDelete]
         public async Task<IActionResult> EliminarCliente(int id)
         {
-            var clienteExiste = await _context.Clientes.FirstOrDefaultAsync(c => c.ClienteId == id);
-            if (clienteExiste == null)
-            {
-                return BadRequest($"El Cliente con id={id} no existe en la base de datos");
-            }
+
             try
             {
-                await _IClienteRepositorio.Delete(id); 
+                var eliminacionCompletada = await _IClienteService.Eliminar(id);
+                if (!eliminacionCompletada.Success)
+                {
+                    return NotFound(eliminacionCompletada.Errors);
+                }
+              
+                return Ok(eliminacionCompletada.Data);
+                //return RedirectToAction(nameof(GetClientes));
+                
             }
             catch(DbUpdateConcurrencyException ex)
             {
@@ -137,9 +144,6 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                 return BadRequest($"No es posible eliminar el Cliente: {message}");
 
             }
-
-            return RedirectToAction(nameof(GetClientes));
-
         } 
 
     }

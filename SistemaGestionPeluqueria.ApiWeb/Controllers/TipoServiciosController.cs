@@ -123,13 +123,13 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         {
             try
             {
-                var tipoServicio = await _context.TipoServicios.FirstOrDefaultAsync(t => t.TipoServicioId == id);
+                var tipoServicio = await _ITipoServicioRepository.GetByIdAsync(id);
                 if (tipoServicio == null)
                 {
                     return NotFound($"El tipo de servicio con id={id} no existe en la base de datos");
                 }
 
-                await _ITipoServicioRepository.Delete(tipoServicio.TipoServicioId);
+                _ITipoServicioRepository.Delete(tipoServicio);
                 return NoContent();
                
             }

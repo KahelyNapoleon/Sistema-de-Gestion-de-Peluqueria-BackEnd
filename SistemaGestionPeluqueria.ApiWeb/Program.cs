@@ -9,6 +9,8 @@ using DAL.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using BLL.Services.Interfaces;
 using BLL.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SistemaGestionPeluqueria.ApiWeb.Middlewares;
 
 
 namespace SistemaGestionPeluqueria.ApiWeb
@@ -19,9 +21,7 @@ namespace SistemaGestionPeluqueria.ApiWeb
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
-          
+            // Add services to the container.        
 
             //Repositorios y Unidad de trabajo [ALCANCE]:
 
@@ -38,9 +38,17 @@ namespace SistemaGestionPeluqueria.ApiWeb
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             //Servicios
+            builder.Services.AddScoped<IClienteService, ClienteServicio>(); //Cliente
             builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
-      
-         
+            builder.Services.AddScoped<IAdministradorService, AdministradorServicio>(); //Administrador
+            builder.Services.AddScoped<IEstadoTurnoService, EstadoTurnoServicio>(); //EstadoTurno
+            //builder.Services.AddScoped<IHistorialTurnoService, HistorialTurnoServicio>(); //HistorialTurno
+            builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
+            builder.Services.AddScoped<IServicioService, ServicioServicio>(); //Servicio
+            builder.Services.AddScoped<ITipoServicioService, TipoServicioServicio>(); //TipoServicio
+            //builder.Services.AddScoped<ITurnoService, TurnoServicio>(); //Turno
+
+
 
             //-----------------------------------------------------------------------------
 
@@ -50,7 +58,7 @@ namespace SistemaGestionPeluqueria.ApiWeb
 
             builder.Services.AddControllers();
 
-            var app = builder.Build();  //CORREGIR EL TEMA DE MODELSTATEWRAPPED YA QYE EL ENSAMBLADO 
+            var app = builder.Build();  //CORREGIR EL TEMA DE MODELSTATEWRAPPED YA QUE EL ENSAMBLADO 
             // NO LO RECONOCE FUERA DEL MISMO EN LA CAPA DE SERVICIO.
 
             //// Configure the HTTP request pipeline.
@@ -62,6 +70,10 @@ namespace SistemaGestionPeluqueria.ApiWeb
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            //MiddleWare Customizado
+            app.UseMiddleware<CustomLoggingMiddleware>();
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.MapControllers();
 

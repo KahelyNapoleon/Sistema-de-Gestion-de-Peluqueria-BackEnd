@@ -112,7 +112,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             //CHEQUEAR ESTA PARTE YA QUE UN TURNO DEBERIA SER UNA DESCRIPCION PROPIA USADA
             //POR EL REGISTRO DE TURNOS, POR ENDE SI SE QUIERE ELIMINAR SE VERA AFECTADO
             //LOS TURNOS QUE LA ESTEN UTILIZANDO.
-            var estadoTurnoExiste = await _context.EstadoTurnos.FirstOrDefaultAsync(e => e.EstadoTurnoId == id);
+            var estadoTurnoExiste = await _IEstadoTurnoRepositorio.GetByIdAsync(id);
             if (estadoTurnoExiste == null)
             {
                 return BadRequest($"El registro con id={id} no existe");
@@ -120,7 +120,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
             try
             {
-                await _IEstadoTurnoRepositorio.Delete(id);
+                _IEstadoTurnoRepositorio.Delete(estadoTurnoExiste);
             }
             catch(DbUpdateConcurrencyException ex)
             {

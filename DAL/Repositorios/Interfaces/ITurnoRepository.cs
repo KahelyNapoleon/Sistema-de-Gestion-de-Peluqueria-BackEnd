@@ -9,7 +9,7 @@ namespace DAL.Repositorios.Interfaces
 {
     public interface ITurnoRepository : IGenericRepository<Turno>
     {
-        Task<IEnumerable<Turno>> ObtenerTurnoPorFecha(DateTime fechaTurno);
+        Task<IEnumerable<Turno>> ObtenerTurnoPorFecha(DateOnly fechaTurno);
         Task<IEnumerable<Turno>> ObtenerTurnoPorServicio(int servicioId);
         Task<IEnumerable<Turno>> ObtenerTurnoPorCliente(int clienteId);
         Task<IEnumerable<Turno>> ObtenerTurnoPorEstadoTurno(int estadoTurnoId);

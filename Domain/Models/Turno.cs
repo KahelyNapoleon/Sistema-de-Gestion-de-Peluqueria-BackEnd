@@ -7,8 +7,6 @@ public partial class Turno
 {
     public int TurnoId { get; set; }
 
-    public DateTime FechaTurno { get; set; }
-
     public string? Detalle { get; set; }
 
     public int ServicioId { get; set; }
@@ -22,6 +20,10 @@ public partial class Turno
     public int MetodoPagoId { get; set; }
 
     public int AdministradorId { get; set; }
+
+    public TimeOnly HoraTurno { get; set; }
+
+    public DateOnly FechaTurno { get; set; }
 
     public virtual Administrador Administrador { get; set; } = null!;
 

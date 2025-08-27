@@ -11,11 +11,17 @@ public partial class HistorialTurno
 
     public int EstadoActual { get; set; }
 
-    public DateTime? FechaCambio { get; set; }
-
     public int TurnoId { get; set; }
 
     public int AdministradorId { get; set; }
+
+    public DateOnly? FechaActual { get; set; }
+
+    public DateOnly? FechaAnterior { get; set; }
+
+    public TimeOnly? HoraActual { get; set; }
+
+    public TimeOnly? HoraAnterior { get; set; }
 
     public virtual Administrador Administrador { get; set; } = null!;
 

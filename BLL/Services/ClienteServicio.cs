@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using BLL.Services.Interfaces;
 using DomainLayer.Models;
 using System.Text.RegularExpressions;
+using BLL.Services.OperationResult;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -26,7 +28,8 @@ namespace BLL.Services
         public async Task<OperationResult<IEnumerable<Cliente>>> ObtenerTodos()
         {
             var clientes = await _clienteRepository.GetAllAsync();
-            if ( clientes == null || !clientes.Any() )
+
+            if ( !clientes.Any() )
             {
                 return OperationResult<IEnumerable<Cliente>>.Fail("Aun no clientes registrados!");
             }
@@ -36,26 +39,40 @@ namespace BLL.Services
 
         public async Task<OperationResult<Cliente>> ObtenerPorId(int id)
         {
-            var clienteExiste = await _clienteRepository.VerificarSiExiste(id);
-            if (!clienteExiste)
+            var cliente = await _clienteRepository.GetByIdAsync(id);
+            if (cliente == null)
             {
                 return OperationResult<Cliente>.Fail($"El cliente con id {id} no existe");
             }
 
-            var cliente = await _clienteRepository.GetByIdAsync(id);
-
             return OperationResult<Cliente>.Ok(cliente!);
         }
 
+
+
         public async Task<OperationResult<Cliente>> Crear(Cliente cliente)
         {
-            var validarCliente = ValidarCliente(cliente);
-            if (!validarCliente.Success)
-                return validarCliente;//Los errores de la validacion? 
+            try
+            {
+                var validarCliente = ValidarCliente(cliente);
+                if (!validarCliente.Success)
+                    return validarCliente;//Los errores de la validacion? 
 
-            await _clienteRepository.AddAsync(cliente);
+                await _clienteRepository.AddAsync(cliente);
 
-            return OperationResult<Cliente>.Ok(cliente);
+                return OperationResult<Cliente>.Ok(cliente);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<Cliente>.Fail(ex.InnerException!.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                return OperationResult<Cliente>.Fail(ex.Message);
+            }
+
         }
 
 
@@ -85,18 +102,24 @@ namespace BLL.Services
 
         }
 
-        public async Task<OperationResult<bool>> Eliminar(int id)
+
+        /// <summary>
+        /// ELIMINAR UN REGISTRO DE CLIENTE
+        /// </summary>
+        /// <param name="id">ELIMINA TAL REGISTRO A PATIR DE ESTE PAREMTRO QUE ES EL ID DEL CLIENTE</param>
+        /// <returns> UN TIPO OperationResult<bool>.Value que sera TRUE O FALSE </returns>
+        public async Task<OperationResult<string>> Eliminar(int id)
         {
-            var clienteExiste = await _clienteRepository.VerificarSiExiste(id);
-            if (!clienteExiste)
+            var clienteExiste = await _clienteRepository.GetByIdAsync(id);
+            if (clienteExiste == null)
             {
-                return OperationResult<bool>.Fail("Id Incorrecto.");
+                return OperationResult<string>.Fail($"Id {id} no existe.");
                 
             }
 
-            await _clienteRepository.Delete(id);
+            _clienteRepository.Delete(clienteExiste);
 
-            return OperationResult<bool>.Ok(true);
+            return OperationResult<string>.Ok("Registro eliminado correctamente.");
         }
 
 
@@ -121,7 +144,7 @@ namespace BLL.Services
                 errores.Add("El número de celular es obligatorio.");
             else if (!cliente.NroCelular.All(char.IsDigit))
                 errores.Add("El número de celular solo debe contener dígitos.");
-            else if (cliente.NroCelular.Length < 7 || cliente.NroCelular.Length > 15)
+            else if (cliente.NroCelular.Length < 7 && cliente.NroCelular.Length > 15)
                 errores.Add("El número de celular debe tener entre 7 y 15 dígitos.");
 
             //Correo Electronico.

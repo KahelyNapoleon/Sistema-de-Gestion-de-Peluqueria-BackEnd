@@ -39,7 +39,7 @@ namespace DAL.Repositorios
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Turno>> ObtenerTurnoPorFecha(DateTime fechaTurno)
+        public async Task<IEnumerable<Turno>> ObtenerTurnoPorFecha(DateOnly fechaTurno)
         {
             return await _context.Turnos
                 .Where(t => t.FechaTurno == fechaTurno)

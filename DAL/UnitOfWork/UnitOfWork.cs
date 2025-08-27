@@ -15,7 +15,7 @@ namespace DAL.UnitOfWork
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly ApplicationDbContext _context; //CONSTANTE EN TIEMPO DE EJECUCION
-        private IDbContextTransaction _transaction; //VARIABLE DE INSTANCIA PRIVADA.
+        private IDbContextTransaction _transaction = null!; //VARIABLE DE INSTANCIA PRIVADA.
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -23,11 +23,11 @@ namespace DAL.UnitOfWork
 
         }
 
-        //VARIABLES DE INSTANCIA 
-        private ITurnoRepository _turnoRepository;
+        //VARIABLES DE INSTANCIA que aceptan valores nulos...
+        private ITurnoRepository? _turnoRepository;
         public ITurnoRepository TurnoRepository => _turnoRepository ??= new TurnoRepositorio(_context);
 
-        private IHistorialTurnoRepository _historialTurnoRepository;
+        private IHistorialTurnoRepository? _historialTurnoRepository;
         public IHistorialTurnoRepository HistorialTurnoRepository => _historialTurnoRepository ??= new HistorialTurnoRepositorio(_context);
 
 
@@ -43,28 +43,7 @@ namespace DAL.UnitOfWork
         
         public async Task GuardarCambiosAsync()
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-                if (_transaction != null)
-                {
-                    await _transaction.CommitAsync();
-                    _transaction.Dispose();
-                    _transaction = null!;
-
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                if (_transaction != null)
-                {
-                    await _transaction!.RollbackAsync();
-                    _transaction.Dispose();
-                    _transaction = null!;
-                }
-                throw;
-            }          
+            await _context.SaveChangesAsync();    
         }
 
 
@@ -77,6 +56,16 @@ namespace DAL.UnitOfWork
                 _transaction = null!;
             }
 
+        }
+
+        public async Task ConfirmarCambios()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null!;
+            }
         }
 
 

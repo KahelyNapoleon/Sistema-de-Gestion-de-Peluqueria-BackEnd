@@ -1,4 +1,5 @@
-﻿using DomainLayer.Models;
+﻿using BLL.Services.OperationResult;
+using DomainLayer.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace BLL.Services.Interfaces
         Task<OperationResult<Cliente>> ObtenerPorId(int id);
         Task<OperationResult<Cliente>> Crear(Cliente cliente);
         Task<OperationResult<Cliente>> Actualizar(Cliente cliente, int id);
-        Task<OperationResult<bool>> Eliminar(int id);
+        Task<OperationResult<string>> Eliminar(int id);
         
         //Validacion
         OperationResult<Cliente> ValidarCliente(Cliente cliente);

@@ -1,4 +1,5 @@
 ﻿using BLL.Services.Interfaces;
+using BLL.Services.OperationResult;
 using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using System;
@@ -50,7 +51,7 @@ namespace BLL.Services
             var estadoTurnoCrear = ValidarEstadoTurno(estadoTurno);
             if (!estadoTurnoCrear.Success)
             {
-                return OperationResult<EstadoTurno>.Fail(String.Join(",",estadoTurnoCrear.Errors));
+                return OperationResult<EstadoTurno>.Fail(String.Join(",",estadoTurnoCrear.Errors!));//Aca garantizo que la lista de errores no sera vacia
             }
 
             //Si la validacion es exitosa.
@@ -63,7 +64,7 @@ namespace BLL.Services
         
         public async Task<OperationResult<EstadoTurno>> Actualizar(EstadoTurno estadoTurno, int id)
         {
-            var estadoTurnoExiste = await _estadoTurnoRepository.BuscarAsync(id);
+            var estadoTurnoExiste = await _estadoTurnoRepository.GetByIdAsync(id);
             if (estadoTurnoExiste == null)
             {
                 return OperationResult<EstadoTurno>.Fail($"El Estado de Turno con id {id} no existe!");
@@ -73,7 +74,7 @@ namespace BLL.Services
             var estadoTurnoValidar = ValidarEstadoTurno(estadoTurno);
             if (!estadoTurnoValidar.Success)
             {
-                return OperationResult<EstadoTurno>.Fail(String.Join(" ,",estadoTurnoValidar.Errors));
+                return OperationResult<EstadoTurno>.Fail(String.Join(" ,",estadoTurnoValidar.Errors!));//Aca garantizo que la lista de errores no sera vacia
             }
 
             //Si todo sale bien asignar los nuevos datos al registro de estado turno con id = id.
@@ -88,13 +89,13 @@ namespace BLL.Services
         
         public async Task<OperationResult<bool>> Eliminar(int id)
         {
-            var verificarSiExiste = await _estadoTurnoRepository.VerificarSiExiste(id);
-            if (!verificarSiExiste)
+            var verificarSiExiste = await _estadoTurnoRepository.GetByIdAsync(id);
+            if (verificarSiExiste == null)
             {
                 return OperationResult<bool>.Fail($"El registro con id {id} no existe.");
             }
 
-            await _estadoTurnoRepository.Delete(id);
+            _estadoTurnoRepository.Delete(verificarSiExiste);
 
             return OperationResult<bool>.Ok(true);
         }

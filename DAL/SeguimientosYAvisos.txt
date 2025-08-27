@@ -123,3 +123,100 @@ se realiza una verificacion antes de eliminar el registro de la entidad, estoy s
 de un repositorio que solo debe efectuar los cambios en la base de datos sin codigo extra que verifique si esos datos
 existen o no.
 
+---------------------------------------------------------
+[17/7/25]
+-Se corrigio el principio de responsabildiad unica para los metodos 'Delete' del repositorio generico.
+
+Observaciones: Hay varias...
+1-Al crear el servicio de HistorialTurno surgio el problema que este servicio no deberia ocntar con metodos CRUDs
+basicos sino que sus metodos son mas especificos con respecto a los cambios que se realizan en la tabla turnos y
+quien las realizo, por ejemplo se registra en cada cambio del estadoTurno de la tabla turno por medio de la tabla
+historialTurno quien realizo(administrador) tales cambios de estado o de fecha en caso de que se reprograme el turno...
+
+---------------------------------------------------------
+[18/7/25]
+-Observacion del flujo del funcionamiento de la capa de servicio de turno, cuyo servicio debe aplicar la capa unitOfwork
+obteniendo como resultado realizar los registros en la tabla historialturno... 
+-Esta observacion implico que se realicen los cambios correspondientes de la interfaz 'HistorialTurno', por hallarse
+que se encontraban con metodos que no correspondian a su funcionamiento simple o que solo debian retornar una lista
+de registros o un simple registro(HttpGet).
+
+---------------------------------------------------------
+[27/7/25]
+-Se procede con los siguientes servicios [Servicio, TipoServicio, Turno]
+-Servicio:"Completado<Servicio,Interfaz>", Observar:"Las conversiones de los tipos int a string en el metodo que Valida y el los  
+                                  metodos que usa el metodo de validacion".
+
+-TipoServicio:"Completado<Servicio,Interfaz>".
+
+---------------------------------------------------------
+[28/7/25]
+-Turno: "Incompleto", Interfaz En proceso-Verificar
+
+---------------------------------------------------------
+[29/7/25]
+-Turno: "TurnoServicio: En Curso"
+-Cambios y Observaciones: "Hay que agregar un campo de HoraTurno en la tabla de turno de la base de datos".
+"Ver de agregarlo desde el Modelo con migraciones de EntityFrameworkCore".
+
+---------------------------------------------------------
+[30/7/25]
+-Turno:COntinuamos con el servicio de Turnos.
+-Hubo varios cambios realizados en la base de datos: 
+                                   1.Se agrego el campo HoraTuno a la tabla de turno
+                                   2.Se tuvo que cambiar el tipo de dato de fehca de DateTime a DateOnly.
+                      [ATENCION]   3.No se actualizo el 'ApplicationDbContext' luego del cambio del tipo de 
+                                   dato especificado en el item (2).
+           [ATENCION] [FINALIZADO] 4.Tabla 'HistorialTurno' en el campo FechaCambio no se cambio el tipo
+                                   de dato -> Cambiar de DateTime a DateOnly.
+           [ATENCION] [FINALIZADO] 5.Se realizaron varios cambios en la base de datos sobre todo en la tabla
+                                   'HistorialTurno' SE DEBE REALIZAR DE NUEVO el Scaffolding!
+
+
+---------------------------------------------------------
+[31/7/25]
+-Se realizaron los cambios correspondientes al dia de ayer.
+-FALTA EL METODO COMMIT EN LA CLASE UNITOFWORK. [COMPLETADO] 
+
+---------------------------------------------------------
+[31/7/25]
+-Se realizaron los cambios correspondientes al dia de ayer de la Clase UnitOfWork.
+-Ver FluentValidation, ya que se cometieron errores en la validacion de los datos del turno...
+-Ver TurnoServicio.cs junto con su Interfaz, y ver los datos que demanda el modelo de Turno.
+
+---------------------------------------------------------
+[4/7/25]
+-Ver archivo 'TurnoServicio.cs' linea 166, hay un detalle, cuando se cambia la fecha y la hora de un turno 
+ver si el estado del turno tambien hay que cambiarlo por el hecho de que se realiza un cambio de fecha y hora
+sin cambio de estadoTurno.
+
+---------------------------------------------------------
+[13/8/25]
+-Se modifico dos metodos de la interfaz de AdministradorServicio tanto en la interfaz como en los metodos del
+servicio se realizaron los cambios correspondientes...
+[CONTINUAR CON LA CORRECCION DE LOS DEMAS SERVICIOS JUNTO CON SUS INTERFACES]
+
+---------------------------------------------------------
+[15/8/25]
+-VER ClienteController.cs en el metodo 'AgregarCliente' hay que correguir el badRequest y el control de excepciones
+que se esta realizando en el servicio. Ver bien eso y corregir. [PENDIENTE-INCOMPLETO].
+
+
+
+
+
+
+[SECCION ESTATICA]
+-------------------------------------------------------
+INTRODUCCION A LA SECCION ESTATICA:
+-ESTA SECCION CONTIENE LAS ESPECIFICACIONES Y TIPS MAS GENERALES QUE FALTAN COMPLETAR EN LA API EN GENERAL.
+-TAREAS GENERALES Y TRANSFERENCIA DE DATOS QUE IMPLICARIAN MAS DE UNA TABLA.
+-IMPLEMENTACIONES Y METODOS IMPORTANTES.
+
+A-Servicio Turno: Servicio del cual debe implementar la arquitectura UnirOfWork en ella, para generar
+los cambios en las tablas 'Turnos' e 'HistorialTurno'.
+
+
+
+
+

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BLL.Services.Interfaces;
 using DomainLayer.Models;
+using BLL.Services.OperationResult;
 
 namespace BLL.Services
 {
@@ -50,7 +51,7 @@ namespace BLL.Services
             if (!validacionMetodoPagoACrear.Success) //Corregir?  Si el estado de exito del metodo ValidarMetodoPago() es 'False' entonces
                                                        //         ingresa a la condicion y retorna el tipo 
             {
-                return validacionMetodoPagoACrear;   //
+                return validacionMetodoPagoACrear;   //Este tipo No Deberia retornar una lsita de errores?
             }
 
             await _metodoPagoRepository.AddAsync(metodoPagoACrear);
@@ -82,12 +83,12 @@ namespace BLL.Services
 
         public async Task<OperationResult<string>> Eliminar(int id)
         {
-            
-            if (!await _metodoPagoRepository.VerificarSiExiste(id))
+            var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id);
+            if (metodoPagoExiste == null)
             {
                 return OperationResult<string>.Fail("Metodo que quieres eliminar no existe!"); ;
             }
-            await _metodoPagoRepository.Delete(id);
+            _metodoPagoRepository.Delete(metodoPagoExiste);
             return OperationResult<string>.Ok("Eliminado con Exito!");
         }
 

@@ -33,7 +33,7 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<Turno> Turnos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    { }
+    {}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,10 +95,6 @@ public partial class ApplicationDbContext : DbContext
 
             entity.ToTable("HistorialTurno");
 
-            entity.Property(e => e.FechaCambio)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
             entity.HasOne(d => d.Administrador).WithMany(p => p.HistorialTurnos)
                 .HasForeignKey(d => d.AdministradorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -139,7 +135,7 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasOne(d => d.TipoServicio).WithMany(p => p.Servicios)
                 .HasForeignKey(d => d.TipoServicioId)
-                .OnDelete(DeleteBehavior.Cascade) //Cambio a eliminacion en cascada.........
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Servicio_TipoServicio");
         });
 
@@ -167,7 +163,6 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Detalle)
                 .HasMaxLength(255)
                 .IsUnicode(false);
-            entity.Property(e => e.FechaTurno).HasColumnType("datetime");
 
             entity.HasOne(d => d.Administrador).WithMany(p => p.Turnos)
                 .HasForeignKey(d => d.AdministradorId)

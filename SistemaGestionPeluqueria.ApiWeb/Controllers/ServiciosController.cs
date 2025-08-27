@@ -114,13 +114,13 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         {
             try
             {
-                var servicioEliminar = await _context.Servicios.FirstOrDefaultAsync(s => s.ServicioId == id);
+                var servicioEliminar = await _IServicioRepository.GetByIdAsync(id);
                 if (servicioEliminar == null)
                 {
                     return NotFound($"El servicio con id={id} no se encuentra en la base de datos. \n Intente con otro id");
                 }
 
-                await _IServicioRepository.Delete(id);
+                _IServicioRepository.Delete(servicioEliminar);
                 return NoContent();
 
             }catch(DbUpdateConcurrencyException ex)

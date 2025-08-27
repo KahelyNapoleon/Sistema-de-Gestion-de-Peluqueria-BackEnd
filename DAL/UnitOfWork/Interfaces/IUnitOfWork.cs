@@ -21,6 +21,8 @@ namespace DAL.UnitOfWork.Interfaces
         Task GuardarCambiosAsync();
 
         Task DeshacerCambiosAsync();
+
+        Task ConfirmarCambios();
         
     }
 }

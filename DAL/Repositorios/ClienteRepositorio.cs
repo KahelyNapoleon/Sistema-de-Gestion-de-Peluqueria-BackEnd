@@ -22,22 +22,22 @@ namespace DAL.Repositorios
         }
 
         //Obtener un cliente por {id} [HttpGet]
-        public override async Task<Cliente?> GetByIdAsync(int id)
-        {
-            try
-            {
-                var clienteExiste = await _context.Clientes.FindAsync(id);
-                if (clienteExiste != null)
-                {
-                    return clienteExiste;
-                }
-                throw new KeyNotFoundException(nameof(clienteExiste));
-            }
-            catch
-            {
-                throw new KeyNotFoundException($"El cliente con id {id} no se encuentra en la base de datos");
-            }
-        }
+        //public override async Task<Cliente?> GetByIdAsync(int id)
+        //{
+        //    try
+        //    {
+        //        var clienteExiste = await _context.Clientes.FindAsync(id);
+        //        if (clienteExiste != null)
+        //        {
+        //            return clienteExiste;
+        //        }
+        //        throw new KeyNotFoundException(nameof(clienteExiste));
+        //    }
+        //    catch
+        //    {
+        //        throw new KeyNotFoundException($"El cliente con id {id} no se encuentra en la base de datos");
+        //    }
+        //}
 
         //public override void Delete(Cliente cliente)
         //{

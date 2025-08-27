@@ -13,9 +13,9 @@ public partial class Cliente
 
     public string NroCelular { get; set; } = null!;
 
-    public string CorreoElectronico { get; set; } = null!;
+    public string? CorreoElectronico { get; set; }
 
-    public DateOnly FechaNacimiento { get; set; }
+    public DateOnly? FechaNacimiento { get; set; }
 
     public virtual ICollection<Turno> Turnos { get; set; } = new List<Turno>();
 }

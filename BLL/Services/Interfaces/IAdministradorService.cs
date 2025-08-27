@@ -1,4 +1,5 @@
-﻿using DomainLayer.Models;
+﻿using BLL.Services.OperationResult;
+using DomainLayer.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace BLL.Services.Interfaces
 {
     public interface IAdministradorService
     {
-        Task<IEnumerable<Administrador>> ObtenerTodos();
-        Task<Administrador?> ObtenerPorId(int id);
+        Task<OperationResult<IEnumerable<Administrador>>> ObtenerTodos();
+        Task<OperationResult<Administrador>> ObtenerPorId(int id);
         Task<OperationResult<Administrador>> Crear(Administrador admin);
         Task<OperationResult<Administrador>> Actualizar(Administrador admin, int id);
         Task<OperationResult<bool>> Eliminar(int id);

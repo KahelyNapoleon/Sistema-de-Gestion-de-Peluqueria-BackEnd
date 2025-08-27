@@ -51,16 +51,16 @@ namespace DAL.Repositorios
         }
 
         //REVISAR
-        public virtual async Task Delete(int id)
-        {
-            var entityExist =  await _dbSet.FindAsync(id);
-            if (entityExist != null)
-            {                                                        //VER SI EL REPOSITORIO SOLAMENTE DEBE ENCARGARSE DE ELIMNAR EL REGISTRO
-                _dbSet.Remove(entityExist);                          //Y NO DE BUSCAR EL REGISTRO Y VERIFICAR SI EXISTE O NO.
-                await _context.SaveChangesAsync();
-            }
+        //public virtual async Task Delete(int id)
+        //{
+         //   var entityExist =  await _dbSet.FindAsync(id);
+         //   if (entityExist != null)
+          //  {                                                   //VER SI EL REPOSITORIO SOLAMENTE DEBE ENCARGARSE DE ELIMNAR EL REGISTRO
+          //      _dbSet.Remove(entityExist);                     //Y NO DE BUSCAR EL REGISTRO Y VERIFICAR SI EXISTE O NO.
+          //      await _context.SaveChangesAsync();
+         //   }
 
-        }
+        //}
         //REVISAR
         public virtual void Delete(TEntity entityToDelete)
         {
@@ -87,12 +87,6 @@ namespace DAL.Repositorios
         public virtual async Task<TEntity?> BuscarAsync(int id)
         {
             var entidad = await _dbSet.FindAsync(id);
-
-            if (entidad == null)
-            {
-                return null;
-            }
-
             return entidad;
         }
 
