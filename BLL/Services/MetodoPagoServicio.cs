@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 using BLL.Services.Interfaces;
 using DomainLayer.Models;
 using BLL.Services.OperationResult;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
     public class MetodoPagoServicio : IMetodoPagoService
     {
         private readonly IMetodoPagoRepository _metodoPagoRepository;
-       
+
 
         public MetodoPagoServicio(IMetodoPagoRepository metodoPagoRepository) //: base(metodoPagoRepository, validationDictionary) 
         {
@@ -24,9 +26,23 @@ namespace BLL.Services
         /// RECUPERA TODOS LOS REGISTROS DETALLADOS DE LA BASE DE DATOS 
         /// </summary>
         /// <returns> LISTA DE REGISTROS DE TIPO METODOPAGO </returns>
-        public async Task<IEnumerable<MetodoPago>> ObtenerTodos()
+        public async Task<OperationResult<IEnumerable<MetodoPago>>> ObtenerTodos()
         {
-            return await _metodoPagoRepository.GetAllAsync();
+            try
+            {
+                var metodosPagos = await _metodoPagoRepository.GetAllAsync();
+                if (!metodosPagos.Any())
+                {
+                    return OperationResult<IEnumerable<MetodoPago>>.Fail("Aun no hay registros");
+                }
+
+                return OperationResult<IEnumerable<MetodoPago>>.Ok(metodosPagos);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<IEnumerable<MetodoPago>>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
+
         }
 
         /// <summary>
@@ -34,9 +50,23 @@ namespace BLL.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns> DICHA ENTIDAD QUE COINCIDA CON EL ID INGRESADO </returns>
-        public async Task<MetodoPago?> ObtenerPorId(int id)
+        public async Task<OperationResult<MetodoPago>> ObtenerPorId(int id)
         {
-            return await _metodoPagoRepository.GetByIdAsync(id);
+            try
+            {
+                var metodoPago = await _metodoPagoRepository.GetByIdAsync(id);
+                if (metodoPago == null)
+                {
+                    return OperationResult<MetodoPago>.Fail("");
+                }
+
+                return OperationResult<MetodoPago>.Ok(metodoPago);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<MetodoPago>.Fail("Algo salio mal" + ex.InnerException?.Message);
+            }
+
         }
 
         /// <summary>
@@ -46,61 +76,77 @@ namespace BLL.Services
         /// <returns> RETORNARA UN RESULTADO DE TIPO OperationResult<MetodoPago>  </returns>
         public async Task<OperationResult<MetodoPago>> Crear(MetodoPago metodoPagoACrear)
         {
-            var validacionMetodoPagoACrear = ValidarMetodoPago(metodoPagoACrear);
-
-            if (!validacionMetodoPagoACrear.Success) //Corregir?  Si el estado de exito del metodo ValidarMetodoPago() es 'False' entonces
-                                                       //         ingresa a la condicion y retorna el tipo 
+            try
             {
-                return validacionMetodoPagoACrear;   //Este tipo No Deberia retornar una lsita de errores?
-            }
+                var validarMetodoPago = ValidarMetodoPago(metodoPagoACrear);
 
-            await _metodoPagoRepository.AddAsync(metodoPagoACrear);
-            return OperationResult<MetodoPago>.Ok(metodoPagoACrear);
+                if (!validarMetodoPago.Success) //Corregir?  Si el estado de exito del metodo ValidarMetodoPago() es 'False' entonces
+                {                                          //         ingresa a la condicion y retorna el tipo 
+                    return validarMetodoPago;   //Este tipo No Deberia retornar una lsita de errores?
+                }
+
+                await _metodoPagoRepository.AddAsync(metodoPagoACrear);
+                return OperationResult<MetodoPago>.Ok(metodoPagoACrear);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<MetodoPago>.Fail("Algo salio mal" + ex.InnerException?.Message);
+            }
         }
 
         public async Task<OperationResult<MetodoPago>> Actualizar(MetodoPago metodoPagoValidar, int id)
         {
-            var validacionMetodoPagoActualizar = ValidarMetodoPago(metodoPagoValidar); 
-            if (!validacionMetodoPagoActualizar.Success) //Corregir
+            try
             {
-                return validacionMetodoPagoActualizar;
-            }
+                var validarMetodoPagoActualizar = ValidarMetodoPago(metodoPagoValidar);
+                if (!validarMetodoPagoActualizar.Success) //Corregir
+                {
+                    return validarMetodoPagoActualizar;
+                }
 
-            var metodoPagoExiste = await _metodoPagoRepository.BuscarAsync(id);
-            if (metodoPagoExiste == null)
+                var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id);
+                if (metodoPagoExiste == null)
+                {
+                    return OperationResult<MetodoPago>.Fail("El registro no se encuentra.");
+                }
+
+                //Unico Campo que se debe actualizar de MetodoPago - Solo la descripcion del metodo
+                metodoPagoExiste.Descripcion = metodoPagoValidar.Descripcion;
+
+                //Se Guarda en la base de datos a traves del repositorio
+                await _metodoPagoRepository.UpdateAsync(metodoPagoExiste);
+
+                return OperationResult<MetodoPago>.Ok(metodoPagoExiste);
+            }
+            catch (DbUpdateConcurrencyException ex)
             {
-                return OperationResult<MetodoPago>.Fail("El registro no se encuentra en la base de datos.");
+                return OperationResult<MetodoPago>.Fail("Algo salio mal" + ex.InnerException?.Message);
             }
-
-            //Unico Campo que se debe actualizar de MetodoPago - Solo la descripcion del metodo
-            metodoPagoExiste.Descripcion = metodoPagoValidar.Descripcion;
-
-            //Se Guarda en la base de datos a traves del repositorio
-            await _metodoPagoRepository.UpdateAsync(metodoPagoExiste);
-
-            return OperationResult<MetodoPago>.Ok(metodoPagoExiste);
         }
 
         public async Task<OperationResult<string>> Eliminar(int id)
         {
-            var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id);
-            if (metodoPagoExiste == null)
+            try
             {
-                return OperationResult<string>.Fail("Metodo que quieres eliminar no existe!"); ;
+                var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id);
+                if (metodoPagoExiste == null)
+                {
+                    return OperationResult<string>.Fail("Metodo que quieres eliminar no existe!"); ;
+                }
+                await _metodoPagoRepository.Delete(metodoPagoExiste);
+                return OperationResult<string>.Ok("Eliminado con Exito!");
             }
-            _metodoPagoRepository.Delete(metodoPagoExiste);
-            return OperationResult<string>.Ok("Eliminado con Exito!");
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<string>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
 
 
 
-            //VALIDACION DE UN OBJETO MetodoPago... ... ...
 
-
-
-
-
+        //VALIDACION DE UN OBJETO MetodoPago... ... ...
         /// <summary>
         /// VALIDA LOS CAMPOS DE LA ENTIDAD
         /// </summary>
@@ -115,13 +161,10 @@ namespace BLL.Services
 
             if (errores.Any())
             {
-                var resultado = OperationResult<MetodoPago>.Fail(errores.ToArray());//CONVIERTE UN TIPO LIST<T> EN UN ARRAY...
-                return resultado;
+                return OperationResult<MetodoPago>.Fail(errores.ToArray());//CONVIERTE UN TIPO LIST<T> EN UN ARRAY...
             }
-               
-           
+
             return OperationResult<MetodoPago>.Ok(metodoPagoValidar);
         }
-
     }
 }

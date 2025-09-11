@@ -9,10 +9,10 @@ namespace DAL.Repositorios.Interfaces
 {
     public interface IHistorialTurnoRepository : IGenericRepository<HistorialTurno>
     {
-        Task<IEnumerable<HistorialTurno>> ObtenerPorTurnoIdAsync(int turnoId);
-        Task<IEnumerable<HistorialTurno>> ObtenerPorAdministradorAsync(int administradorId);
+        //Task<IEnumerable<HistorialTurno>> ObtenerPorTurnoIdAsync(int turnoId);
+        //Task<IEnumerable<HistorialTurno>> ObtenerPorAdministradorAsync(int administradorId);
 
-        Task<HistorialTurno?> ObtenerPorEstadoActual(HistorialTurno historialTurno, string estadoActual);
+        //Task<HistorialTurno?> ObtenerPorEstadoActual(HistorialTurno historialTurno, string estadoActual);
 
     }
 }

@@ -7,6 +7,8 @@ using DomainLayer.Models;
 using BLL.Services.OperationResult;
 using DAL.Repositorios.Interfaces;
 using BLL.Services.Interfaces;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -22,76 +24,111 @@ namespace BLL.Services
         //ObtenerTodo
         public async Task<OperationResult<IEnumerable<TipoServicio>>> ObtenerTodos()
         {
-            var tipoServicios = await _tipoServicioRepository.GetAllAsync();
-            if (!tipoServicios.Any())
+            try
             {
-                return OperationResult<IEnumerable<TipoServicio>>.Fail("No se registran datos de tipo servicio");
-            }
+                var tipoServicios = await _tipoServicioRepository.GetAllAsync();
+                if (!tipoServicios.Any())
+                {
+                    return OperationResult<IEnumerable<TipoServicio>>.Fail("No se registran datos de tipo servicio");
+                }
 
-            return OperationResult<IEnumerable<TipoServicio>>.Ok(tipoServicios);
+                return OperationResult<IEnumerable<TipoServicio>>.Ok(tipoServicios);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<IEnumerable<TipoServicio>>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
         //ObtenerPorId
         public async Task<OperationResult<TipoServicio>> ObtenerPorId(int id)
         {
-            var tipoServicio = await _tipoServicioRepository.GetByIdAsync(id);
-            if (tipoServicio == null)
+            try
             {
-                return OperationResult<TipoServicio>.Fail($"No existe registro con id {id}");
-            }
+                var tipoServicio = await _tipoServicioRepository.GetByIdAsync(id);
+                if (tipoServicio == null)
+                {
+                    return OperationResult<TipoServicio>.Fail($"No existe registro con id {id}");
+                }
 
-            return OperationResult<TipoServicio>.Ok(tipoServicio);
+                return OperationResult<TipoServicio>.Ok(tipoServicio);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<TipoServicio>.Fail("Algo salio mal" + ex.InnerException?.Message);
+            }
         }
 
         //Crear
         public async Task<OperationResult<TipoServicio>> Crear(TipoServicio tipoServicio)
         {
-            var tipoServicioValidar = ValidarTipoServicio(tipoServicio);
-            if (!tipoServicioValidar.Success)
+            try
             {
-                return OperationResult<TipoServicio>.Fail(tipoServicioValidar.Errors!.ToArray());
+                var tipoServicioValidar = ValidarTipoServicio(tipoServicio);
+                if (!tipoServicioValidar.Success)
+                {
+                    return tipoServicioValidar;
+                }
+
+                await _tipoServicioRepository.AddAsync(tipoServicio);
+
+                return OperationResult<TipoServicio>.Ok(tipoServicio);
             }
-
-            await _tipoServicioRepository.AddAsync(tipoServicio);
-
-            return OperationResult<TipoServicio>.Ok(tipoServicio);
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<TipoServicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
         //Actualizar
         public async Task<OperationResult<TipoServicio>> Actualizar(TipoServicio tipoServicio, int id)
         {
-            var tipoServicioValidar = ValidarTipoServicio(tipoServicio);
-            if (!tipoServicioValidar.Success)
+            try
             {
-                return OperationResult<TipoServicio>.Fail(tipoServicioValidar.Errors!.ToArray());
-            }
+                var tipoServicioValidar = ValidarTipoServicio(tipoServicio);
+                if (!tipoServicioValidar.Success)
+                {
+                    return tipoServicioValidar;
+                }
 
-            var tipoServicioExiste = await _tipoServicioRepository.GetByIdAsync(id);
-            if (tipoServicioExiste == null)
+                var tipoServicioExiste = await _tipoServicioRepository.GetByIdAsync(id);
+                if (tipoServicioExiste == null)
+                {
+                    return OperationResult<TipoServicio>.Fail($"El servicio con id {id} no existe en los registros.");
+                }
+
+                //DESCRIPCION
+                tipoServicioExiste.Descripcion = tipoServicio.Descripcion;
+
+                await _tipoServicioRepository.UpdateAsync(tipoServicioExiste);
+
+                return OperationResult<TipoServicio>.Ok(tipoServicio);
+            }
+            catch (DbUpdateConcurrencyException ex)
             {
-                return OperationResult<TipoServicio>.Fail($"El servicio con id {id} no existe en los registros.");
+                return OperationResult<TipoServicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
-
-            //DESCRIPCION
-            tipoServicioExiste.Descripcion = tipoServicio.Descripcion;
-
-            await _tipoServicioRepository.UpdateAsync(tipoServicioExiste);
-
-            return OperationResult<TipoServicio>.Ok(tipoServicio);
         }
 
         //Eliminar
         public async Task<OperationResult<string>> Eliminar(int id)
         {
-            var tipoServicioEliminar = await _tipoServicioRepository.GetByIdAsync(id);
-            if (tipoServicioEliminar == null)
+            try
             {
-                return OperationResult<string>.Fail($"Tipo servicio con id {id} no existe en los registros.");
+                var tipoServicioEliminar = await _tipoServicioRepository.GetByIdAsync(id);
+                if (tipoServicioEliminar == null)
+                {
+                    return OperationResult<string>.Fail($"Tipo servicio con id {id} no existe en los registros.");
+                }
+
+                await _tipoServicioRepository.Delete(tipoServicioEliminar);
+
+                return OperationResult<string>.Ok("Registro Eliminado.");
             }
-
-            _tipoServicioRepository.Delete(tipoServicioEliminar);
-
-            return OperationResult<string>.Ok("Registro Eliminado.");
+            catch(DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<string>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
         //ValidarTipoServicio

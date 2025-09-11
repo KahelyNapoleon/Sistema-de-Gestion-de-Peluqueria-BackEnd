@@ -62,13 +62,14 @@ namespace DAL.Repositorios
 
         //}
         //REVISAR
-        public virtual void Delete(TEntity entityToDelete)
+        public virtual async Task Delete(TEntity entityToDelete)
         {
             if(_context.Entry(entityToDelete).State == EntityState.Detached)
             {
                  _dbSet.Attach(entityToDelete);
             }
             _dbSet.Remove(entityToDelete);
+            await _context.SaveChangesAsync();
         } 
 
         public virtual async Task<bool> VerificarSiExiste(int id)

@@ -199,10 +199,26 @@ servicio se realizaron los cambios correspondientes...
 ---------------------------------------------------------
 [15/8/25]
 -VER ClienteController.cs en el metodo 'AgregarCliente' hay que correguir el badRequest y el control de excepciones
-que se esta realizando en el servicio. Ver bien eso y corregir. [PENDIENTE-INCOMPLETO].
+que se esta realizando en el servicio. Ver bien eso y corregir. [VISTO].
 
+---------------------------------------------------------
+[28/8/25]
+-Continuando con los controladores, esta en proceso el controlador de Administrador... 
+-Algunas mejoras que se vieron fue {Manejar las Excepciones lanzadas hacia un middleware con las controle}
+-Y se vio el concepto de testeo pero se vera una vez finalizado los controladores y correjido los middlewares.
+-Ver que tipo de excepcion debe lanzar cada metodo de los servicios segun sea el caso.[PENDIENTE-OBSERVACION].
 
+-VER EL SERVICIO DE ADMINISTRADOR EL METODO 'ACTUALIZAR' NO TIENE MUCHO SENTIDO ACTUALIZAR EL USUARIO Y LA CONTRASEÑA
+ SI NO SE ESTA VALIDANDO QUE EL USUARIO O CONTRASEÑA ACTUAL SEA LA CORRECTA, VER ESO. [PENDIENTE-OBSERVACION].
 
+ ---------------------------------------------------------
+[1/9/25]
+-Se continuo con el controlador de Administrador, pero hay un error de compilacion en el metodo actualizar del servicio de 
+administrador al momento de actualizar un registro. [PENDIENTE-OBSERVACION]. VER LOS PENDIENTES-OBSERVACION ANTERIORES.
+SOLUCIONADO!!!
+-VER ACTUALIZAR CONTRASENIA O RECUPERARLA 
+-INICIO DE SESION (AQUI VER JWT COMO INTEGRARLO) 
+-PARA EL INICIO DE SESION VER COMO ADMINISTRAR LOS ROLES. [OBSERVACION]
 
 
 

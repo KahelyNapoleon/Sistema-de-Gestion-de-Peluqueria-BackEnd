@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BLL.BCryptHasher;
 using BLL.Services.OperationResult;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -23,25 +25,41 @@ namespace BLL.Services
 
         public async Task<OperationResult<IEnumerable<Administrador>>> ObtenerTodos()
         {
-            var administradores = await _administradorRepository.GetAllAsync();
-            if (!administradores.Any())
+            try
             {
-                return OperationResult<IEnumerable<Administrador>>.Fail("Aun no hay Administradores registrados.");
+                var administradores = await _administradorRepository.GetAllAsync();
+                if (!administradores.Any())
+                {
+                    return OperationResult<IEnumerable<Administrador>>.Fail("Aun no hay Administradores registrados.");
+                }
+
+                return OperationResult<IEnumerable<Administrador>>.Ok(administradores);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<IEnumerable<Administrador>>.Fail(ex.InnerException?.Message ?? ex.Message);
             }
 
-            return OperationResult<IEnumerable<Administrador>>.Ok(administradores);
-       
+
         }
 
         public async Task<OperationResult<Administrador>> ObtenerPorId(int id)
         {
-            var admin = await _administradorRepository.GetByIdAsync(id);
-            if (admin == null)
+            try
             {
-                return OperationResult<Administrador>.Fail($"Id {id} no existe en los registros.");
-            }
+                var admin = await _administradorRepository.GetByIdAsync(id);
+                if (admin == null)
+                {
+                    return OperationResult<Administrador>.Fail($"Id {id} no existe en los registros.");
+                }
 
-            return OperationResult<Administrador>.Ok(admin);
+                return OperationResult<Administrador>.Ok(admin);
+
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<Administrador>.Fail(ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         /// <summary>
@@ -51,63 +69,88 @@ namespace BLL.Services
         /// <returns>  Un tipo OperationResult  </returns>
         public async Task<OperationResult<Administrador>> Crear(Administrador admin)
         {
-            //El metodo ValidarAdministrador retorna un tipo OperationResult...
-            var validarAdmin = ValidarAdministrador(admin);
-            if (!validarAdmin.Success)
-                 return validarAdmin;
+            try
+            {
+                var validarAdmin = ValidarAdministrador(admin);
+                if (!validarAdmin.Success)
+                    return validarAdmin; //El metodo ValidarAdministrador retorna un tipo OperationResult...Ok... o ...Fail
+                                         //En este caso si entro dentro del codigo if => Success = False;
 
-            //Aca se debe hashear la contrasenia
-            admin.Contrasena = PasswordHasher.Hashear(admin.Contrasena);
+                //Aca se debe hashear la contrasenia creada
+                admin.Contrasena = PasswordHasher.Hashear(admin.Contrasena);
 
-            await _administradorRepository.AddAsync(admin);
+                await _administradorRepository.AddAsync(admin);
 
-            return OperationResult<Administrador>.Ok(admin);
+                return OperationResult<Administrador>.Ok(admin); //Retornar el registro creado
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<Administrador>.Fail(ex.InnerException!.Message ?? ex.Message);
+            }
         }
 
         public async Task<OperationResult<Administrador>> Actualizar(Administrador admin, int id)
         {
-
-            var adminExiste = await _administradorRepository.BuscarAsync(id);
-            if (adminExiste == null)
+            try
             {
-                return OperationResult<Administrador>.Fail("El registro no existe en la base de datos.");
+                var adminExiste = await _administradorRepository.BuscarAsync(id);
+                if (adminExiste == null)
+                {
+                    return OperationResult<Administrador>.Fail($"El id{id} no existe.");
+                }
+
+                var adminValidar = ValidarAdministrador(admin);
+                if (!adminValidar.Success)//Si entra en esta condicion el resultado de la validacion
+                {                         // significa que algo salio mal
+                    return adminValidar; //Aca retorna el tipo OoperationResilt<Admin> pero con una lista de errores
+                }                        //y la prop. success => false.
+
+                //Asignacion de los valores del parametro de entrada 'admin' al objeto adminExiste para aplicar
+                //los cambios.
+                adminExiste.Correo = admin.Correo;
+                adminExiste.Usuario = admin.Usuario;
+                //Comprueba si la contrasenia ah sido actualizada tambien...
+                if (admin.Contrasena != adminExiste.Contrasena) adminExiste.Contrasena = PasswordHasher.Hashear(admin.Contrasena);
+                //SI LA CONTRASENIA ES LA MISMA DEBE LANZAR UN MENSAJE
+
+                await _administradorRepository.UpdateAsync(adminExiste);
+
+                return OperationResult<Administrador>.Ok(adminExiste);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<Administrador>.Fail(ex.InnerException?.Message ?? ex.Message);
             }
 
-            var adminValidar = ValidarAdministrador(admin);
-            if (!adminValidar.Success)//Si entra en esta condicion el resultado de la validacion
-            {                         // significa que algo salio mal
-                return adminValidar; //Aca retorna el tipo OoperationResilt<Admin> pero con una lista de errores
-            }                        //y la prop. success => false.
 
-            //Asignacion de los valores del parametro de entrada 'admin' al objeto adminExiste para aplicar
-            //los cambios.
-            adminExiste.Correo = admin.Correo;
-            adminExiste.Usuario = admin.Usuario;
-            //Comprueba si la contrasenia ah sido actualizada tambien...
-            if(admin.Contrasena != adminExiste.Contrasena) adminExiste.Contrasena = PasswordHasher.Hashear(admin.Contrasena);
-
-            await _administradorRepository.UpdateAsync(adminExiste);
-
-            return OperationResult<Administrador>.Ok(adminExiste);
         }
 
-       
 
-        public async Task<OperationResult<bool>> Eliminar(int id)
+
+        public async Task<OperationResult<string>> Eliminar(int id)
         {
-            var administradorExiste = await _administradorRepository.GetByIdAsync(id);
-            if (administradorExiste == null)//Si no Existe enviar un mensaje de Error
+
+            try
             {
-                return OperationResult<bool>.Fail("El id del Administrador no se encuentra en los registros!");
+                var administradorExiste = await _administradorRepository.GetByIdAsync(id);
+                if (administradorExiste == null)//Si no Existe enviar un mensaje de Error
+                {
+                    return OperationResult<string>.Fail($"El id {id} no se encuentra en los registros!");
+                }
+
+                //Si Existe el registro, lo elimina
+                //Y retorna un tipo OperationResult<bool> con las propiedades {Success= True, Data= True}.
+                await _administradorRepository.Delete(administradorExiste);
+                return OperationResult<string>.Ok("Eliminado correctamente");
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<string>.Fail($"Hubo un error: " + ex.InnerException!.Message ?? ex.Message);
             }
 
-            //Si Existe el registro, lo elimina
-            //Y retorna un tipo OperationResult<bool> con las propiedades {Success= True, Data= True}.
-            _administradorRepository.Delete(administradorExiste);
-            return OperationResult<bool>.Ok(true);
         }
 
-        
+
         /// <summary>
         /// Metodo de Inicio de Sesion para un Administrador.
         /// </summary>
@@ -115,24 +158,32 @@ namespace BLL.Services
         /// <param name="contrasenia">Contrasenia hasheada en la base de datos</param>
         /// <returns> Un OperationResult con dos Valores: Success=True, Data= Administrador </returns>
         public async Task<OperationResult<Administrador>> IniciarSesion(string correo, string contrasenia)
-        {   
-            //1-A) Busca el objeto de Administrador a traves del correo ingresado
-            var admin = await _administradorRepository.ObtenerPorUsuarioCorreoAsync(correo);
-
-            //1-B) Si el objeto no se halla por su correo entontes no existe en la base de datos.
-            if(admin == null)
+        {
+            try
             {
-                return OperationResult<Administrador>.Fail("Correo Invalido");
+                //1-A) Busca el objeto de Administrador a traves del correo ingresado
+                var admin = await _administradorRepository.ObtenerPorUsuarioCorreoAsync(correo);
+
+                //1-B) Si el objeto no se halla por su correo entontes no existe en la base de datos.
+                if (admin == null)
+                {
+                    return OperationResult<Administrador>.Fail("Correo Invalido");
+                }
+
+                //1-C) Si encuentra el Usuario entonces verificamos la contrasenia
+                //Si el metodo Verificar retorna False encontes retornamos "contrasenia incorrecta"
+                if (!PasswordHasher.Verificar(contrasenia, admin.Contrasena))
+                {
+                    return OperationResult<Administrador>.Fail("Contrasena Invalida");
+                }
+
+                return OperationResult<Administrador>.Ok(admin);
+            }
+            catch (DbException ex) //Excepcion Temporal no permante pOR CAUSA DE PENDIENTE DE OBSERVACION
+            {
+                return OperationResult<Administrador>.Fail("Hubo un error para iniciar Sesion" + ex.InnerException?.Message ?? ex.Message);
             }
 
-            //1-C) Si encuentra el Usuario entonces verificamos la contrasenia
-            //Si el metodo Verificar retorna False encontes retornamos "contrasenia incorrecta"
-            if(!PasswordHasher.Verificar(contrasenia, admin.Contrasena))
-            {
-                return OperationResult<Administrador>.Fail("Contrasena Invalida");
-            }
-
-            return OperationResult<Administrador>.Ok(admin);
 
         }
 
@@ -162,9 +213,9 @@ namespace BLL.Services
 
             if (errores.Any()) return OperationResult<Administrador>.Fail(errores.ToArray());
 
-                //Si no hay errores en la validacion de los datos para crear un administrador
-                //se retorna un tipo OperationResult que admite tipo 'Administrador' y 
-                return OperationResult<Administrador>.Ok(administrador);
+            //Si no hay errores en la validacion de los datos para crear un administrador
+            //se retorna un tipo OperationResult que admite tipo 'Administrador' y 
+            return OperationResult<Administrador>.Ok(administrador);
         }
     }
 }

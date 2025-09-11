@@ -14,7 +14,7 @@ namespace BLL.Services.Interfaces
         Task<OperationResult<Administrador>> ObtenerPorId(int id);
         Task<OperationResult<Administrador>> Crear(Administrador admin);
         Task<OperationResult<Administrador>> Actualizar(Administrador admin, int id);
-        Task<OperationResult<bool>> Eliminar(int id);
+        Task<OperationResult<string>> Eliminar(int id);
         OperationResult<Administrador> ValidarAdministrador(Administrador admin);
         Task<OperationResult<Administrador>> IniciarSesion(string correo, string contrasenia);
     }

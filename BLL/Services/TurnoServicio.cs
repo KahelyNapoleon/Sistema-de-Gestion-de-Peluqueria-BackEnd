@@ -11,66 +11,85 @@ using DAL.Repositorios.Interfaces;
 using DAL.UnitOfWork.Interfaces;
 using DomainLayer.Models;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 
 namespace BLL.Services
 {
     public class TurnoServicio : ITurnoService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ITurnoService _turnoService;
+        //private readonly ITurnoService _turnoService;
 
-        public TurnoServicio(IUnitOfWork unitOfWork, ITurnoService turnoService)
+        public TurnoServicio(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _turnoService = turnoService;
         }
 
         //ObtenerTodos
         public async Task<OperationResult<IEnumerable<Turno>>> ObtenerTodos()
         {
-            var turnos = await _unitOfWork.TurnoRepository.GetAllAsync();
-            if (!turnos.Any())
+            try
             {
-                return OperationResult<IEnumerable<Turno>>.Fail("Aun no hay turnos registrados.");
-            }
+                var turnos = await _unitOfWork.TurnoRepository.GetAllAsync();
+                if (!turnos.Any())
+                {
+                    return OperationResult<IEnumerable<Turno>>.Fail("Aun no hay turnos registrados.");
+                }
 
-            return OperationResult<IEnumerable<Turno>>.Ok(turnos);
+                return OperationResult<IEnumerable<Turno>>.Ok(turnos);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<IEnumerable<Turno>>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
         //ObtenerPorId
         public async Task<OperationResult<Turno>> ObtenerPorId(int id)
         {
-            var turno = await _unitOfWork.TurnoRepository.GetByIdAsync(id);
-            if (turno == null)
+            try
             {
-                return OperationResult<Turno>.Fail($"El registro con id {id} no se encuentra.");
-            }
+                var turno = await _unitOfWork.TurnoRepository.GetByIdAsync(id);
+                if (turno == null)
+                {
+                    return OperationResult<Turno>.Fail($"El registro con id {id} no se encuentra.");
+                }
 
-            return OperationResult<Turno>.Ok(turno);
+                return OperationResult<Turno>.Ok(turno);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<Turno>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
         //Crear
         public async Task<OperationResult<Turno>> Crear(Turno turno)
         {
-            //1-PRIMERO SE VALIDAN LOS DATOS DEL TURNO
-            var validarTurno = ValidarTurno(turno);
-            if (!validarTurno.Success)
-            {
-                return OperationResult<Turno>.Fail(validarTurno.Errors!.ToArray());
-            }
-
-            //2-LUEGO SE INICIA UNA TRANSACCION DE LOS DATOS PARA ENVIARLOS ATOMICAMENTE A LA BASE DE DATOS
-            await _unitOfWork.IniciarTransaccionAsync();
             try
             {
+                //1-PRIMERO SE VALIDAN LOS DATOS DEL TURNO
+                var validarTurno = ValidarTurno(turno);
+                if (!validarTurno.Success)
+                {
+                    return validarTurno;
+                }
+
+                //2-LUEGO SE INICIA UNA TRANSACCION DE LOS DATOS PARA ENVIARLOS ATOMICAMENTE A LA BASE DE DATOS
+                await _unitOfWork.IniciarTransaccionAsync();
+
+                turno.EstadoTurnoId = 2; //EstadoTurno = 2 -> A Confirmar;
+
                 //3-AGREGO LOS DATOS DEL NUEVO REGISTRO DEL TURNO Y LOS GUARDO en memoria.
                 await _unitOfWork.TurnoRepository.AddAsync(turno);
+
                 await _unitOfWork.GuardarCambiosAsync();
 
                 //4-CREO UN NUEVO OBJETO DE TIPO 'HistorialTurno' PARA CREAR UN NUEVO REGISTRO A PARTIR DEL TURNO CREADO
                 var nuevoHistorial = new HistorialTurno
                 {
-                    EstadoAnterior = 0,
+                    EstadoAnterior = 1, //Estadoturno = 1 -> Disponible 
                     EstadoActual = turno.EstadoTurnoId,
                     TurnoId = turno.TurnoId,
                     AdministradorId = turno.AdministradorId,
@@ -91,7 +110,7 @@ namespace BLL.Services
 
 
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException ex)
             {
                 await _unitOfWork.DeshacerCambiosAsync();
                 return OperationResult<Turno>.Fail("Ocurrio un error", ex.Message);
@@ -102,20 +121,20 @@ namespace BLL.Services
         //Actualizar Turno/EstadoTurno
         public async Task<OperationResult<Turno>> ActualizarEstadoTurno(int turnoId, EstadoTurno estadoTurno)
         {
-            var turnoExiste = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
-            if (turnoExiste == null)
-            {
-                return OperationResult<Turno>.Fail($"No se encuentra el registro de id {turnoId}");
-            }
-
-            await _unitOfWork.IniciarTransaccionAsync();
-
             try
             {
-             
-                var estadoAnteriorId = turnoExiste.EstadoTurnoId;
+                var turnoExiste = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
+                if (turnoExiste == null)
+                {
+                    return OperationResult<Turno>.Fail($"No se encuentra el registro de id {turnoId}");
+                }
 
-                turnoExiste.EstadoTurnoId = estadoTurno.EstadoTurnoId;
+                await _unitOfWork.IniciarTransaccionAsync();
+
+                var estadoAnteriorId = turnoExiste.EstadoTurnoId; //REVISAR ESTOS DOS MOVIMIENTOS
+
+                turnoExiste.EstadoTurnoId = estadoTurno.EstadoTurnoId; //ESTE TAMBIEN. EL NUEVO ESTADO DEBE SER SIGUIENTE? O ANTERIOR?
+
                 await _unitOfWork.GuardarCambiosAsync();
 
                 var nuevoHistorialTurno = new HistorialTurno
@@ -138,35 +157,34 @@ namespace BLL.Services
                 return OperationResult<Turno>.Ok(turnoExiste);
 
             }
-            catch(Exception ex)
+            catch (DbUpdateConcurrencyException ex)
             {
                 await _unitOfWork.DeshacerCambiosAsync();
-                return OperationResult<Turno>.Fail("Algo salio mal", ex.Message);
+                return OperationResult<Turno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
-            
+
         }
 
         //Actualizar FechaTurno y HoraTurno
         public async Task<OperationResult<Turno>> ActualizarFechaYHoraTurno(int turnoId, DateOnly nuevaFecha, TimeOnly nuevaHora, EstadoTurno nuevoEstado)
         {
-            var turnoExiste = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
-            if (turnoExiste == null)
-            {
-                return OperationResult<Turno>.Fail($"El turno con id {turnoId} no se encuentra.");
-            }
-
-            //VALIDAR FECHA Y HORA!
-            var fechaYHora = ValidarFechaYHora(nuevaFecha, nuevaHora);
-            if (!fechaYHora.Success)
-            {
-                return OperationResult<Turno>.Fail("Fecha y/o Hora invalida.");
-            }
-
-
-            await _unitOfWork.IniciarTransaccionAsync();
-
             try
             {
+                var turnoExiste = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
+                if (turnoExiste == null)
+                {
+                    return OperationResult<Turno>.Fail($"El turno con id {turnoId} no se encuentra.");
+                }
+
+                //VALIDAR FECHA Y HORA!
+                var fechaYHora = ValidarFechaYHora(nuevaFecha, nuevaHora);
+                if (!fechaYHora.Success)
+                {
+                    return OperationResult<Turno>.Fail("Fecha y/o Hora invalida.");
+                }
+
+                await _unitOfWork.IniciarTransaccionAsync();
+
                 //SE GUARDAN LOS DATOS ANTIGUOS DE LA FECHA, HORA Y ESTADO DEL TURNO 
                 var fechaAnterior = turnoExiste.FechaTurno;
                 var horaAnterior = turnoExiste.HoraTurno;
@@ -207,34 +225,34 @@ namespace BLL.Services
                 return OperationResult<Turno>.Ok(turnoExiste);
 
             }
-            catch(Exception ex)
+            catch (DbUpdateConcurrencyException ex)
             {
                 await _unitOfWork.DeshacerCambiosAsync();
-                var message = ex.InnerException!.Message;
-                return OperationResult<Turno>.Fail("Algo salio mal.", message);
+
+                return OperationResult<Turno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
-           
+
         }
 
         //Eliminar-Turno
         public async Task<OperationResult<string>> Eliminar(int turnoId)
         {
-            var turnoEliminar = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
-            if (turnoEliminar == null)
-            {
-                return OperationResult<string>.Fail($"Id {turnoId} no hallado.");
-            }
-
             try
             {
-                _unitOfWork.TurnoRepository.Delete(turnoEliminar);
+                var turnoEliminar = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
+                if (turnoEliminar == null)
+                {
+                    return OperationResult<string>.Fail($"Id {turnoId} no hallado.");
+                }
+
+                await _unitOfWork.TurnoRepository.Delete(turnoEliminar);
 
                 return OperationResult<string>.Ok("Turno Eliminado.");
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException ex)
             {
-                var message = ex.InnerException!.Message;
-                return OperationResult<string>.Fail(message);
+                var message = ex.InnerException?.Message;
+                return OperationResult<string>.Fail("Algo salio mal "+ message);
             }
         }
 
@@ -246,7 +264,7 @@ namespace BLL.Services
             var errors = new List<string>();
 
             //validar fecha:
-            if (turno.FechaTurno < DateOnly.FromDateTime(DateTime.Today) ) errors.Add("La fecha debe ser mayor o igual a la fecha actual");
+            if (turno.FechaTurno < DateOnly.FromDateTime(DateTime.Today)) errors.Add("La fecha debe ser mayor o igual a la fecha actual");
             //validarHora
             if (turno.HoraTurno.Hour < 9 || turno.HoraTurno.Hour > 20) errors.Add("La hora del turno debe encontrarse dentro del horario de apertura (9:00hs-20:00hs).");
 
@@ -280,7 +298,7 @@ namespace BLL.Services
             var errors = new List<string>();
 
             if (fecha < DateOnly.FromDateTime(DateTime.Today)) errors.Add("La fecha debe ser mayor o igual a la fecha actual");
-      
+
             if (hora.Hour < 9 || hora.Hour > 20) errors.Add("La hora del turno debe encontrarse dentro del horario de apertura (9:00hs-20:00hs).");
 
             if (errors.Any())

@@ -7,6 +7,8 @@ using DomainLayer.Models;
 using BLL.Services.OperationResult;
 using BLL.Services.Interfaces;
 using DAL.Repositorios.Interfaces;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -22,82 +24,115 @@ namespace BLL.Services
         //GetAll
         public async Task<OperationResult<IEnumerable<Servicio>>> ObtenerTodos()
         {
-            var servicios = await _IServicioRepository.GetAllAsync();
-            if (!servicios.Any())
+            try
             {
-                return OperationResult<IEnumerable<Servicio>>.Fail("Aun no hay servicios Registrados.");
-            }
+                var servicios = await _IServicioRepository.GetAllAsync();
+                if (!servicios.Any())
+                {
+                    return OperationResult<IEnumerable<Servicio>>.Fail("Aun no hay servicios Registrados.");
+                }
 
-            return OperationResult<IEnumerable<Servicio>>.Ok(servicios);
+                return OperationResult<IEnumerable<Servicio>>.Ok(servicios);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<IEnumerable<Servicio>>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
         //GetById
         public async Task<OperationResult<Servicio>> ObtenerPorId(int id)
         {
-            var servicio = await _IServicioRepository.GetByIdAsync(id);
-            if (servicio == null)
+            try
             {
-                return OperationResult<Servicio>.Fail($"No existe registgro con id {id}");
+                var servicio = await _IServicioRepository.GetByIdAsync(id);
+                if (servicio == null)
+                {
+                    return OperationResult<Servicio>.Fail($"No existe registgro con id {id}");
+                }
+
+                return OperationResult<Servicio>.Ok(servicio);
             }
-            
-            return OperationResult<Servicio>.Ok(servicio);
+            catch (DbException ex)
+            {
+                return OperationResult<Servicio>.Fail("Algo salio mal" + ex.InnerException?.Message);
+            }
         }
 
         //Crear
         public async Task<OperationResult<Servicio>> Crear(Servicio servicio)
         {
-            var validarServicio = ValidarServicio(servicio);
-            if (!validarServicio.Success)
+            try
             {
-                return OperationResult<Servicio>.Fail(Convert.ToString(validarServicio.Errors)!.ToString()); ;
+                var validarServicio = ValidarServicio(servicio);
+                if (!validarServicio.Success)
+                {
+                    return validarServicio;
+                }
+
+                await _IServicioRepository.AddAsync(servicio);
+
+                return OperationResult<Servicio>.Ok(servicio);
             }
-
-            await _IServicioRepository.AddAsync(servicio);
-
-            return OperationResult<Servicio>.Ok(servicio);
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<Servicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
         //ACTUALIZAR 
         public async Task<OperationResult<Servicio>> Actualizar(Servicio servicio, int id)
         {
-            var validarServicio = ValidarServicio(servicio);
-            if (!validarServicio.Success)
+            try
             {
-                return OperationResult<Servicio>.Fail(String.Join(" ,",Convert.ToString(validarServicio.Errors)));
-            }
+                var validarServicio = ValidarServicio(servicio);
+                if (!validarServicio.Success)
+                {
+                    return OperationResult<Servicio>.Fail(String.Join(" ,", Convert.ToString(validarServicio.Errors)));
+                }
 
-            //Recuperar el servicio original y compararlo
-            var servicioExiste = await _IServicioRepository.GetByIdAsync(id);
-            if (servicioExiste == null)
+                //Recuperar el servicio original y compararlo
+                var servicioExiste = await _IServicioRepository.GetByIdAsync(id);
+                if (servicioExiste == null)
+                {
+                    return OperationResult<Servicio>.Fail($"El servicio con id {id} no existe");
+                }
+
+                servicioExiste.Duracion = servicio.Duracion;
+                servicioExiste.Observacion = servicio.Observacion;
+                servicioExiste.Precio = servicio.Precio;
+                servicioExiste.Descripcion = servicio.Descripcion;
+                servicioExiste.TipoServicioId = servicio.TipoServicioId;
+
+                await _IServicioRepository.UpdateAsync(servicioExiste);
+
+                return OperationResult<Servicio>.Ok(servicioExiste);
+            }
+            catch (DbUpdateConcurrencyException ex)
             {
-                return OperationResult<Servicio>.Fail($"El servicio con id {id} no existe");
+                return OperationResult<Servicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
-
-            servicioExiste.Duracion = servicio.Duracion;
-            servicioExiste.Observacion = servicio.Observacion;
-            servicioExiste.Precio = servicio.Precio;
-            servicioExiste.Descripcion = servicio.Descripcion;
-            servicioExiste.TipoServicioId = servicio.TipoServicioId;
-
-            await _IServicioRepository.UpdateAsync(servicioExiste);
-
-            return OperationResult<Servicio>.Ok(servicioExiste);
-
         }
 
         //ELIMINAR
         public async Task<OperationResult<string>> Eliminar(int id)
         {
-            var eliminarServicio = await _IServicioRepository.GetByIdAsync(id);
-            if (eliminarServicio == null)
+            try
             {
-                return OperationResult<string>.Fail($"No existe servicio id {id}");
+                var eliminarServicio = await _IServicioRepository.GetByIdAsync(id);
+                if (eliminarServicio == null)
+                {
+                    return OperationResult<string>.Fail($"No existe servicio id {id}");
+                }
+
+                await _IServicioRepository.Delete(eliminarServicio);
+
+                return OperationResult<string>.Ok("Servicio eliminado");
             }
-
-            _IServicioRepository.Delete(eliminarServicio);
-
-            return OperationResult<string>.Ok("Servicio eliminado");
-
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<string>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
         }
 
 
@@ -110,18 +145,14 @@ namespace BLL.Services
             if (!String.IsNullOrWhiteSpace(servicio.Descripcion)) errors.Add("Debe llenar la descripcion del servicio");
             if (!String.IsNullOrWhiteSpace(servicio.Observacion)) errors.Add("Rellene este campo.");
             if (!String.IsNullOrWhiteSpace(Convert.ToString(servicio.TipoServicioId))) errors.Add("Ingrese un Tipo de Servicio");
-            if (!String.IsNullOrWhiteSpace(Convert.ToString(servicio.Precio))) errors.Add("Ingrese un Tipo de Servicio");
+            if (!String.IsNullOrWhiteSpace(Convert.ToString(servicio.Precio))) errors.Add("Ingrese un Valor");
 
             if (errors.Any())
             {
-                
                 return OperationResult<Servicio>.Fail(errors.ToArray());
             }
 
             return OperationResult<Servicio>.Ok(servicio);
-
-
-
         }
     }
 }

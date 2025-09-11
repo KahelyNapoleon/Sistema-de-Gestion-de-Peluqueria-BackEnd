@@ -25,6 +25,7 @@ namespace SistemaGestionPeluqueria.ApiWeb
 
             //Repositorios y Unidad de trabajo [ALCANCE]:
 
+            //Registro de los ciclos de vida de los Repositorios.
             builder.Services.AddScoped<IAdministradorRepository, AdministradorRepositorio>();
             builder.Services.AddScoped<IClienteRepository, ClienteRepositorio>();
             builder.Services.AddScoped<IEstadoTurnoRepository, EstadoTurnoRepositorio>();
@@ -34,15 +35,15 @@ namespace SistemaGestionPeluqueria.ApiWeb
             builder.Services.AddScoped<IServicioRepository, ServicioRepositorio>();
             builder.Services.AddScoped<ITurnoRepository, TurnoRepositorio>();
 
-            //Unidad de trabajo
+            //Registro del ciclo de vida de la Unidad de trabajo
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            //Servicios
+            //Registro de los ciclos de vida de los Servicios
             builder.Services.AddScoped<IClienteService, ClienteServicio>(); //Cliente
             builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
             builder.Services.AddScoped<IAdministradorService, AdministradorServicio>(); //Administrador
             builder.Services.AddScoped<IEstadoTurnoService, EstadoTurnoServicio>(); //EstadoTurno
-            //builder.Services.AddScoped<IHistorialTurnoService, HistorialTurnoServicio>(); //HistorialTurno
+            builder.Services.AddScoped<IHistorialTurnoService, HistorialTurnoServicio>(); //HistorialTurno
             builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
             builder.Services.AddScoped<IServicioService, ServicioServicio>(); //Servicio
             builder.Services.AddScoped<ITipoServicioService, TipoServicioServicio>(); //TipoServicio
@@ -71,7 +72,8 @@ namespace SistemaGestionPeluqueria.ApiWeb
 
             app.UseAuthorization();
 
-            //MiddleWare Customizado
+            //MiddleWares:
+            //Customizado
             app.UseMiddleware<CustomLoggingMiddleware>();
             app.UseMiddleware<ErrorHandlingMiddleware>();
 

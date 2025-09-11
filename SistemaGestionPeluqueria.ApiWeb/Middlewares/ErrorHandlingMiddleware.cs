@@ -18,7 +18,7 @@
             catch(Exception ex)
             {
                 context.Response.StatusCode = 500;
-                await context.Response.WriteAsync("Ocurrio un error intesperado");
+                await context.Response.WriteAsync("Ocurrio un error intesperado"+ ex.Message);
             }
         }
     }

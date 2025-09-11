@@ -10,8 +10,8 @@ namespace BLL.Services.Interfaces
 {
     public interface IMetodoPagoService 
     {
-        Task<IEnumerable<MetodoPago>> ObtenerTodos();
-        Task<MetodoPago?> ObtenerPorId(int id);
+        Task<OperationResult<IEnumerable<MetodoPago>>> ObtenerTodos();
+        Task<OperationResult<MetodoPago>> ObtenerPorId(int id);
         Task<OperationResult<MetodoPago>> Crear(MetodoPago metodoPago);
         Task<OperationResult<MetodoPago>> Actualizar(MetodoPago metodoPago, int id);
         Task<OperationResult<string>> Eliminar(int id);

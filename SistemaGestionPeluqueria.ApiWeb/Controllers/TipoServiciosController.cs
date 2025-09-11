@@ -129,7 +129,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                     return NotFound($"El tipo de servicio con id={id} no existe en la base de datos");
                 }
 
-                _ITipoServicioRepository.Delete(tipoServicio);
+                await _ITipoServicioRepository.Delete(tipoServicio);
                 return NoContent();
                
             }

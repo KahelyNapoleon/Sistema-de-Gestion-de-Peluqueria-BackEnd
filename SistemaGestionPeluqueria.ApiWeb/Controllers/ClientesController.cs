@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using DAL.Data;
-using DAL.Repositorios.Interfaces;
 using BLL.Services.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +36,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
 
         [HttpGet]
-        [Route("/Cliente/{id}")]
+        [Route("/api/cliente/{id}")]
         public async Task<IActionResult> GetCliente(int id)
         {
             var cliente = await _IClienteService.ObtenerPorId(id);
@@ -52,20 +50,20 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
 
         [HttpPost]
-        [Route("/AgregarCliente")]
+        [Route("/api/agregarcliente")]
         public async Task<IActionResult> AgregarCliente([FromBody] ClienteDTO cliente)
         {
-            
-                var nuevoCliente = new Cliente
-                {
-                    Nombre = cliente.Nombre,
-                    Apellido = cliente.Apellido,
-                    NroCelular = cliente.NroCelular,
-                    FechaNacimiento = cliente.FechaNacimiento,
-                    CorreoElectronico = cliente.CorreoElectronico
-                };
 
-                var resultadoCliente = await _IClienteService.Crear(nuevoCliente);
+            var nuevoCliente = new Cliente
+            {
+                Nombre = cliente.Nombre,
+                Apellido = cliente.Apellido,
+                NroCelular = cliente.NroCelular,
+                FechaNacimiento = cliente.FechaNacimiento,
+                CorreoElectronico = cliente.CorreoElectronico
+            };
+
+            var resultadoCliente = await _IClienteService.Crear(nuevoCliente);
 
             if (!resultadoCliente.Success)
             {
@@ -82,35 +80,25 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         /// <param name="id">ClienteId de la tabla clientes- se utiliza para buscarlo en la DB</param>
         /// <param name="cliente">Datos que la UI envia para actualizar los datos.</param>
         /// <returns>Un accionResult </returns>
-        [Route("/ActualizarCliente/{id}")]
+        [Route("/api/actualizarcliente/{id}")]
         [HttpPatch]
         public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ClienteDTO cliente)
         {
-            //buscar Id del cliente
-            var clienteExiste = await _IClienteService.ObtenerPorId(id);
-            if (!clienteExiste.Success) //Aqui el servicio que obtiene el cliente por id, si el id no existe
-            {                           //retorna un OperationResult<Cliente>.Fail($"El cliente con id {id} no existe")
-                return NotFound(clienteExiste.Errors);
-            }
 
-            try
+            var clienteActualizar = new Cliente
             {
-                var clienteActualizar = new Cliente
-                {
-                    ClienteId = id,
-                    Nombre = cliente.Nombre,
-                    Apellido = cliente.Apellido,
-                    NroCelular = cliente.NroCelular,
-                    FechaNacimiento = cliente.FechaNacimiento,
-                    CorreoElectronico = cliente.CorreoElectronico
-                };
+                ClienteId = id,
+                Nombre = cliente.Nombre,
+                Apellido = cliente.Apellido,
+                NroCelular = cliente.NroCelular,
+                FechaNacimiento = cliente.FechaNacimiento,
+                CorreoElectronico = cliente.CorreoElectronico
+            };
 
-                await _IClienteService.Actualizar(clienteActualizar, id);
-
-            }catch(DbUpdateConcurrencyException ex)
+            var clienteActualizado = await _IClienteService.Actualizar(clienteActualizar, id);
+            if (!clienteActualizado.Success)
             {
-                var message = ex.InnerException?.Message;
-                return BadRequest($"Algo salio mal {message}");
+                return BadRequest(clienteActualizado.Errors);
             }
 
             return NoContent();
@@ -120,31 +108,20 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         //NO SE ELIMINA, PROBADO POR POSTMAN, 
         //VER QUE CUANDO INGRESAMOS EL ID EN LA SOLICITUD DEL ENDPOINT, NOS REDIRIGUE AL METODO GETALL PERO NO ELIMINA 
         //LA ENTIDAD CON EL ID INGRSADO
-        [Route("/eliminar/cliente/{id}")]
+        [Route("/api/eliminar/cliente/{id}")]
         [HttpDelete]
         public async Task<IActionResult> EliminarCliente(int id)
         {
-
-            try
+            var eliminacionCompletada = await _IClienteService.Eliminar(id);
+            if (!eliminacionCompletada.Success)
             {
-                var eliminacionCompletada = await _IClienteService.Eliminar(id);
-                if (!eliminacionCompletada.Success)
-                {
-                    return NotFound(eliminacionCompletada.Errors);
-                }
-              
-                return Ok(eliminacionCompletada.Data);
-                //return RedirectToAction(nameof(GetClientes));
-                
+                return NotFound(eliminacionCompletada.Errors);
             }
-            catch(DbUpdateConcurrencyException ex)
-            {
-                var message = ex.InnerException?.Message;
 
-                return BadRequest($"No es posible eliminar el Cliente: {message}");
+            return Ok(eliminacionCompletada.Data);
+            //return RedirectToAction(nameof(GetClientes));
 
-            }
-        } 
+        }
 
     }
 }

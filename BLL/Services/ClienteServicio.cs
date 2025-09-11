@@ -9,6 +9,7 @@ using DomainLayer.Models;
 using System.Text.RegularExpressions;
 using BLL.Services.OperationResult;
 using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 
 namespace BLL.Services
 {
@@ -27,27 +28,41 @@ namespace BLL.Services
 
         public async Task<OperationResult<IEnumerable<Cliente>>> ObtenerTodos()
         {
-            var clientes = await _clienteRepository.GetAllAsync();
-
-            if ( !clientes.Any() )
+            try
             {
-                return OperationResult<IEnumerable<Cliente>>.Fail("Aun no clientes registrados!");
+                var clientes = await _clienteRepository.GetAllAsync();
+
+                if (!clientes.Any())
+                {
+                    return OperationResult<IEnumerable<Cliente>>.Fail("Aun no hay clientes registrados!");
+                }
+
+                return OperationResult<IEnumerable<Cliente>>.Ok(clientes);
+            }
+            catch (DbException ex)
+            {
+                return OperationResult<IEnumerable<Cliente>>.Fail("Algo salio mal " + ex.InnerException?.Message ?? ex.Message);
             }
 
-            return OperationResult<IEnumerable<Cliente>>.Ok(clientes);
         }
 
         public async Task<OperationResult<Cliente>> ObtenerPorId(int id)
         {
-            var cliente = await _clienteRepository.GetByIdAsync(id);
-            if (cliente == null)
+            try
             {
-                return OperationResult<Cliente>.Fail($"El cliente con id {id} no existe");
+                var cliente = await _clienteRepository.GetByIdAsync(id);
+                if (cliente == null)
+                {
+                    return OperationResult<Cliente>.Fail($"El cliente con id {id} no existe");
+                }
+
+                return OperationResult<Cliente>.Ok(cliente);
             }
-
-            return OperationResult<Cliente>.Ok(cliente!);
+            catch (DbException ex)
+            {
+                return OperationResult<Cliente>.Fail("Algo salio mal " + ex.InnerException?.Message ?? ex.Message);
+            }
         }
-
 
 
         public async Task<OperationResult<Cliente>> Crear(Cliente cliente)
@@ -66,7 +81,7 @@ namespace BLL.Services
             {
                 return OperationResult<Cliente>.Fail(ex.InnerException!.Message);
             }
-            catch (Exception ex)
+            catch (DbException ex)
             {
                 Console.WriteLine(ex.Message);
 
@@ -78,28 +93,34 @@ namespace BLL.Services
 
         public async Task<OperationResult<Cliente>> Actualizar(Cliente cliente, int id)
         {
-            var clienteExiste = await _clienteRepository.BuscarAsync(id);
-            if (clienteExiste == null)
+            try
             {
-                return OperationResult<Cliente>.Fail("El id no corresponde con un cliente existente");
-            }
+                var clienteExiste = await _clienteRepository.BuscarAsync(id);
+                if (clienteExiste == null)
+                {
+                    return OperationResult<Cliente>.Fail("El id no corresponde a un cliente existente");
+                }
 
-            var clienteValidar = ValidarCliente(cliente);
-            if (!clienteValidar.Success)
+                var clienteValidar = ValidarCliente(cliente);
+                if (!clienteValidar.Success)
+                {
+                    return clienteValidar;
+                }
+
+                clienteExiste.Nombre = cliente.Nombre;
+                clienteExiste.Apellido = cliente.Apellido;
+                clienteExiste.NroCelular = cliente.NroCelular;
+                clienteExiste.CorreoElectronico = cliente.CorreoElectronico;
+                clienteExiste.FechaNacimiento = cliente.FechaNacimiento;
+
+                await _clienteRepository.UpdateAsync(clienteExiste);
+
+                return OperationResult<Cliente>.Ok(clienteExiste);
+            }
+            catch (DbUpdateConcurrencyException ex)
             {
-                return clienteValidar;
+                return OperationResult<Cliente>.Fail("Hubo un error de excepcion", ex.InnerException!.Message);
             }
-
-            clienteExiste.Nombre = cliente.Nombre;
-            clienteExiste.Apellido = cliente.Apellido;
-            clienteExiste.NroCelular = cliente.NroCelular;
-            clienteExiste.CorreoElectronico = cliente.CorreoElectronico;
-            clienteExiste.FechaNacimiento = cliente.FechaNacimiento;
-
-            await _clienteRepository.UpdateAsync(clienteExiste);
-
-            return OperationResult<Cliente>.Ok(clienteExiste);
-
         }
 
 
@@ -110,20 +131,30 @@ namespace BLL.Services
         /// <returns> UN TIPO OperationResult<bool>.Value que sera TRUE O FALSE </returns>
         public async Task<OperationResult<string>> Eliminar(int id)
         {
-            var clienteExiste = await _clienteRepository.GetByIdAsync(id);
-            if (clienteExiste == null)
+            try
             {
-                return OperationResult<string>.Fail($"Id {id} no existe.");
-                
+                var clienteExiste = await _clienteRepository.GetByIdAsync(id);
+                if (clienteExiste == null)
+                {
+                    return OperationResult<string>.Fail($"Id {id} no existe.");
+
+                }
+
+                await _clienteRepository.Delete(clienteExiste);
+
+                return OperationResult<string>.Ok("Registro eliminado correctamente.");
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                var message = ex.InnerException?.Message;
+                return OperationResult<string>.Fail($"Algo salio mal {message}");
+            }
+            catch (DbException ex)
+            { 
+                return OperationResult<string>.Fail($"Algo salio mal" + ex.InnerException?.Message ?? ex.Message);
             }
 
-            _clienteRepository.Delete(clienteExiste);
-
-            return OperationResult<string>.Ok("Registro eliminado correctamente.");
         }
-
-
-
 
 
 
@@ -163,8 +194,6 @@ namespace BLL.Services
 
             //Si todo sale bien.
             return OperationResult<Cliente>.Ok(cliente);
-
-
         }
 
     }

@@ -14,7 +14,7 @@ namespace BLL.Services.Interfaces
         Task<OperationResult<EstadoTurno>> ObtenerPorId(int id);
         Task<OperationResult<EstadoTurno>> Crear(EstadoTurno estadoTurno);
         Task<OperationResult<EstadoTurno>> Actualizar(EstadoTurno estadoTurno, int id);
-        Task<OperationResult<bool>> Eliminar(int id);
+        Task<OperationResult<string>> Eliminar(int id);
 
         //Validacion
         OperationResult<EstadoTurno> ValidarEstadoTurno(EstadoTurno estadoTurno);

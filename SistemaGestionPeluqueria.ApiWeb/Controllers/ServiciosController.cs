@@ -120,7 +120,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                     return NotFound($"El servicio con id={id} no se encuentra en la base de datos. \n Intente con otro id");
                 }
 
-                _IServicioRepository.Delete(servicioEliminar);
+                await _IServicioRepository.Delete(servicioEliminar);
                 return NoContent();
 
             }catch(DbUpdateConcurrencyException ex)

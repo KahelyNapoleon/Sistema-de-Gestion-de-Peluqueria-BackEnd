@@ -14,7 +14,7 @@ namespace DAL.Repositorios.Interfaces
         Task AddAsync(T entity); //Crea un nuevo registro de tipo T(objeto)
         Task UpdateAsync(T entity);//Actualiza un registro de tipo T(objeto)
                                    // Task Delete(int id);//Elimina un registro por su ID.
-        void Delete(T entity);//Elimina un registro a partir del objeto.
+        Task Delete(T entity);//Elimina un registro a partir del objeto.
 
         Task<bool> VerificarSiExiste(int id);
         Task<T?> BuscarAsync(int id);

@@ -120,7 +120,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
             try
             {
-                _IEstadoTurnoRepositorio.Delete(estadoTurnoExiste);
+                await _IEstadoTurnoRepositorio.Delete(estadoTurnoExiste);
             }
             catch(DbUpdateConcurrencyException ex)
             {
