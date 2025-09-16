@@ -9,6 +9,7 @@ using DAL.Repositorios.Interfaces;
 using BLL.Services.Interfaces;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+ 
 
 namespace BLL.Services
 {
@@ -45,13 +46,27 @@ namespace BLL.Services
         {
             try
             {
-                var tipoServicio = await _tipoServicioRepository.GetByIdAsync(id);
+                var tipoServicio = await _tipoServicioRepository.BuscarAsync(id);
                 if (tipoServicio == null)
                 {
                     return OperationResult<TipoServicio>.Fail($"No existe registro con id {id}");
                 }
 
-                return OperationResult<TipoServicio>.Ok(tipoServicio);
+                var tipoServicioView = new TipoServicio
+                {
+                    TipoServicioId = tipoServicio.TipoServicioId,
+                    Descripcion = tipoServicio.Descripcion,
+                    Servicios = tipoServicio.Servicios.Select(s => new Servicio
+                    {
+                        ServicioId = s.ServicioId,
+                        Descripcion = s.Descripcion,
+                        Precio = s.Precio,
+                        Duracion = s.Duracion,
+                        Observacion = s.Observacion
+                    }).ToList()
+                };
+
+                return OperationResult<TipoServicio>.Ok(tipoServicioView);
             }
             catch (DbException ex)
             {
@@ -75,6 +90,10 @@ namespace BLL.Services
                 return OperationResult<TipoServicio>.Ok(tipoServicio);
             }
             catch (DbUpdateConcurrencyException ex)
+            {
+                return OperationResult<TipoServicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
+            }
+            catch (DbException ex)
             {
                 return OperationResult<TipoServicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
@@ -136,7 +155,7 @@ namespace BLL.Services
         {
             var errors = new List<string>();
 
-            if (!String.IsNullOrWhiteSpace(tipoServicio.Descripcion)) errors.Add("Complete este campo.");
+            if (String.IsNullOrWhiteSpace(tipoServicio.Descripcion)) errors.Add("Complete este campo.");
 
             if (errors.Any())
             {

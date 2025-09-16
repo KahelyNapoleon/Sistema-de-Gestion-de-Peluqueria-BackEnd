@@ -2,9 +2,8 @@
 
 namespace SistemaGestionPeluqueria.ApiWeb.DTOs
 {
-    public class ServicioDTO
+    public class ServicioCreateDTO
     {
-        public int ServicioId { get; set; }
         [Required]
         public string Descripcion { get; set; } = null!;
         [Required]

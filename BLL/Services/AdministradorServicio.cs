@@ -117,9 +117,9 @@ namespace BLL.Services
 
                 return OperationResult<Administrador>.Ok(adminExiste);
             }
-            catch (DbException ex)
+            catch (DbUpdateConcurrencyException ex)
             {
-                return OperationResult<Administrador>.Fail(ex.InnerException?.Message ?? ex.Message);
+                return OperationResult<Administrador>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
 
 

@@ -4,6 +4,7 @@ using DAL.Data;
 using DAL.Repositorios;
 using DAL.Repositorios.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using BLL.Services.Interfaces;
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 {
@@ -11,126 +12,94 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
     [Route("[Controller]")]
     public class EstadoTurnosController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IEstadoTurnoRepository _IEstadoTurnoRepositorio;
+        private readonly IEstadoTurnoService _estadoTurnoService;
 
-        public EstadoTurnosController(ApplicationDbContext context, IEstadoTurnoRepository IEstadoTurnoRepositorio)
+        public EstadoTurnosController(IEstadoTurnoService estadoTurnoService)
         {
-            _context = context;
-            _IEstadoTurnoRepositorio = IEstadoTurnoRepositorio;
+            _estadoTurnoService = estadoTurnoService;
         }
 
         [HttpGet]
-        [Route("/estadosturnos")]
-        public async Task<IActionResult> GetEstadosTurno()
+        [Route("/api/estadosturnos")]
+        public async Task<IActionResult> GetEstadosTurnos()
         {
-            var estadosTurnos = await _IEstadoTurnoRepositorio.GetAllAsync(); //?? throw new ArgumentNullException("Aun no hay registros");
-            if (estadosTurnos == null || !estadosTurnos.Any())
+            var estadosTurnos = await _estadoTurnoService.ObtenerTodos(); //?? throw new ArgumentNullException("Aun no hay registros");
+            if (estadosTurnos.Success)
             {
-                return Ok("Aun no hay Estados de turnos Registrados");
+                return BadRequest(estadosTurnos.Errors);
             }
 
-            return Ok(estadosTurnos);
+            return Ok(estadosTurnos.Data);
         }
 
         [HttpGet]
-        [Route("/estadoturno/{id}")]
+        [Route("/api/estadoturno/{id}")]
         public async Task<IActionResult> GetEstadoTurno(int id)
         {
-            var estadoTurnoExiste = await _IEstadoTurnoRepositorio.VerificarSiExiste(id);
-            if (!estadoTurnoExiste)
+            var estadoTurnoExiste = await _estadoTurnoService.ObtenerPorId(id);
+            if (!estadoTurnoExiste.Success)
             {
-                return BadRequest($"No existe un registro de Estado con id={id}");
+                return BadRequest(estadoTurnoExiste.Errors);
             }
 
-            try
-            {
-                var estadoTurno = await _IEstadoTurnoRepositorio.GetByIdAsync(id);
-                return Ok(estadoTurno);
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(estadoTurnoExiste.Data);
 
         }
 
 
         [HttpPost]
-        [Route("/agregar/estadoturno")]
-        public async Task<IActionResult> AgregarEstadoTurno([FromBody]EstadoTurno estadoTurno)
+        [Route("/api/agregar/estadoturno")]
+        public async Task<IActionResult> Crear([FromBody] EstadoTurno estadoTurno)
         {
-            try
-            {
-                var nuevoEstado = new EstadoTurno
-                {
-                    Descripcion = estadoTurno.Descripcion
-                };
 
-                await _IEstadoTurnoRepositorio.AddAsync(nuevoEstado);
-
-                return Ok(nuevoEstado);
-            }
-            catch(Exception ex)
+            var nuevoEstado = new EstadoTurno
             {
-                return BadRequest($"Algo salio mal :(: {ex.Message}");
+                Descripcion = estadoTurno.Descripcion
+            };
+
+            var crearEstado = await _estadoTurnoService.Crear(nuevoEstado);
+            if (!crearEstado.Success)
+            {
+                return BadRequest(crearEstado.Errors);
             }
+
+            return CreatedAtAction(nameof(GetEstadoTurno), new { id = nuevoEstado.EstadoTurnoId }, estadoTurno);
+
         }
 
+        //CONTINUAR AQUI HACIA ABAJO....
 
         [HttpPatch]
-        [Route("/editar/estadoturno/{id}")]
-        public async Task<IActionResult> EditarEstadoTurno(int id, [FromBody] EstadoTurno estadoTurno)
+        [Route("/api/editar/estadoturno/{id}")]
+        public async Task<IActionResult> Actualizar(int id, [FromBody] EstadoTurno estadoTurno)
         {
-           
-            if (id != estadoTurno.EstadoTurnoId)
+            var actualizarEstadoTurno = new EstadoTurno
             {
-                return BadRequest("El id ingresado no pertenece a un registro existente");
+                Descripcion = estadoTurno.Descripcion
+            };
+
+            var actualizarTurno = await _estadoTurnoService.Actualizar(actualizarEstadoTurno, id);
+            if (actualizarTurno.Success)
+            {
+                return NotFound(actualizarTurno.Errors);
             }
 
-            try
-            {
-                await _IEstadoTurnoRepositorio.UpdateAsync(estadoTurno);
+            return CreatedAtAction(nameof(GetEstadoTurno), new {id = actualizarEstadoTurno.EstadoTurnoId}, actualizarEstadoTurno);
 
-                return NoContent();
-
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                var message = ex.InnerException?.Message;
-
-                return BadRequest($"Algo salio mal {message}");
-
-            }
         }
 
 
         [HttpDelete]
-        [Route("/eliminar/estadoturno/{id}")]
+        [Route("/api/eliminar/estadoturno/{id}")]
         public async Task<IActionResult> EliminarEstadoTurno(int id)
         {
-            //CHEQUEAR ESTA PARTE YA QUE UN TURNO DEBERIA SER UNA DESCRIPCION PROPIA USADA
-            //POR EL REGISTRO DE TURNOS, POR ENDE SI SE QUIERE ELIMINAR SE VERA AFECTADO
-            //LOS TURNOS QUE LA ESTEN UTILIZANDO.
-            var estadoTurnoExiste = await _IEstadoTurnoRepositorio.GetByIdAsync(id);
-            if (estadoTurnoExiste == null)
+            var estadoTurnoEliminar = await _estadoTurnoService.Eliminar(id);
+            if (!estadoTurnoEliminar.Success)
             {
-                return BadRequest($"El registro con id={id} no existe");
+                return BadRequest(estadoTurnoEliminar.Errors);
             }
 
-            try
-            {
-                await _IEstadoTurnoRepositorio.Delete(estadoTurnoExiste);
-            }
-            catch(DbUpdateConcurrencyException ex)
-            {
-                var message = ex.InnerException?.Message;
-
-                return BadRequest($"Algo salio mal {message}");
-            }
-
-            return RedirectToAction(nameof(GetEstadosTurno));
-  
+            return Ok(estadoTurnoEliminar.Data);
         }
 
 

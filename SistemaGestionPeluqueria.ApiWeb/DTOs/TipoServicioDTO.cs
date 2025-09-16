@@ -5,6 +5,6 @@
         public int TipoServicioId { get; set; }
         public string Descripcion { get; set; } = null!;
 
-        public List<ServicioDTO> Servicios { get; set; } = new List<ServicioDTO>();
+        public List<ServicioViewDTO> Servicios { get; set; } = new List<ServicioViewDTO>();
     }
 }

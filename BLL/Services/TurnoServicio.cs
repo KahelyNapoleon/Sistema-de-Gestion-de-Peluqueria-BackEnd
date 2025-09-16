@@ -180,9 +180,10 @@ namespace BLL.Services
                 var fechaYHora = ValidarFechaYHora(nuevaFecha, nuevaHora);
                 if (!fechaYHora.Success)
                 {
-                    return OperationResult<Turno>.Fail("Fecha y/o Hora invalida.");
+                    return OperationResult<Turno>.Fail(fechaYHora.Errors!.ToArray());
                 }
 
+                //INICIO DE TRANSACCION
                 await _unitOfWork.IniciarTransaccionAsync();
 
                 //SE GUARDAN LOS DATOS ANTIGUOS DE LA FECHA, HORA Y ESTADO DEL TURNO 
@@ -197,6 +198,8 @@ namespace BLL.Services
 
                 //SE ACTUALIZAN LOS DATOS DEL TURNO Y SE GUARDAN LOS CAMBIOS
                 await _unitOfWork.TurnoRepository.UpdateAsync(turnoExiste);
+
+                //SE GUARDAN LOS CAMBIOS DE LA TRANSACCION
                 await _unitOfWork.GuardarCambiosAsync();
 
                 //[ATENCION - PENDIENTE] !!!!!

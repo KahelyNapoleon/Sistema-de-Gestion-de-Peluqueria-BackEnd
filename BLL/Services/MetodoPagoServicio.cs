@@ -57,7 +57,7 @@ namespace BLL.Services
                 var metodoPago = await _metodoPagoRepository.GetByIdAsync(id);
                 if (metodoPago == null)
                 {
-                    return OperationResult<MetodoPago>.Fail("");
+                    return OperationResult<MetodoPago>.Fail($"No existe registor id{id}");
                 }
 
                 return OperationResult<MetodoPago>.Ok(metodoPago);
@@ -80,9 +80,9 @@ namespace BLL.Services
             {
                 var validarMetodoPago = ValidarMetodoPago(metodoPagoACrear);
 
-                if (!validarMetodoPago.Success) //Corregir?  Si el estado de exito del metodo ValidarMetodoPago() es 'False' entonces
-                {                                          //         ingresa a la condicion y retorna el tipo 
-                    return validarMetodoPago;   //Este tipo No Deberia retornar una lsita de errores?
+                if (!validarMetodoPago.Success) 
+                { 
+                    return validarMetodoPago;   //Retorna un tipo OperationResult
                 }
 
                 await _metodoPagoRepository.AddAsync(metodoPagoACrear);
@@ -104,19 +104,19 @@ namespace BLL.Services
                     return validarMetodoPagoActualizar;
                 }
 
-                var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id);
+                var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id); //Se obtiene por id [A]
                 if (metodoPagoExiste == null)
                 {
                     return OperationResult<MetodoPago>.Fail("El registro no se encuentra.");
                 }
 
-                //Unico Campo que se debe actualizar de MetodoPago - Solo la descripcion del metodo
-                metodoPagoExiste.Descripcion = metodoPagoValidar.Descripcion;
+               
+                metodoPagoExiste.Descripcion = metodoPagoValidar.Descripcion; //Se actualiza el metodo obtenido por el id.[B]
 
                 //Se Guarda en la base de datos a traves del repositorio
                 await _metodoPagoRepository.UpdateAsync(metodoPagoExiste);
 
-                return OperationResult<MetodoPago>.Ok(metodoPagoExiste);
+                return OperationResult<MetodoPago>.Ok(metodoPagoExiste);//Se retorna el metodo actualizado por el id.[C]
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -131,7 +131,7 @@ namespace BLL.Services
                 var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id);
                 if (metodoPagoExiste == null)
                 {
-                    return OperationResult<string>.Fail("Metodo que quieres eliminar no existe!"); ;
+                    return OperationResult<string>.Fail("Metodo de pago que quieres eliminar no existe!"); ;
                 }
                 await _metodoPagoRepository.Delete(metodoPagoExiste);
                 return OperationResult<string>.Ok("Eliminado con Exito!");

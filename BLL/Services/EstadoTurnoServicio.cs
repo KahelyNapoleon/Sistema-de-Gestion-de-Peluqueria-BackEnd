@@ -69,7 +69,7 @@ namespace BLL.Services
                 var estadoTurnoCrear = ValidarEstadoTurno(estadoTurno);
                 if (!estadoTurnoCrear.Success)
                 {
-                    return OperationResult<EstadoTurno>.Fail(String.Join(",", estadoTurnoCrear.Errors!));//Aca garantizo que la lista de errores no sera vacia
+                    return estadoTurnoCrear; // envia un operationResult<EstadoTurno>
                 }
 
                 //Si la validacion es exitosa.
@@ -128,7 +128,7 @@ namespace BLL.Services
 
                 await _estadoTurnoRepository.Delete(verificarSiExiste);
 
-                return OperationResult<string>.Ok("Eliminado con exito");
+                return OperationResult<string>.Ok("Eliminado con correctamente");
             }
             catch (DbUpdateConcurrencyException ex)
             {

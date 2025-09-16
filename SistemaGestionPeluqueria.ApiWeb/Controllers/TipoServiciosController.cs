@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using SistemaGestionPeluqueria.ApiWeb.DTOs;
+using BLL.Services.Interfaces;
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 {
@@ -12,135 +13,82 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
     [Route("[controller]")]
     public class TipoServiciosController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ITipoServicioRepository _ITipoServicioRepository;
+        private readonly ITipoServicioService _tiposervicioService;
 
-        public TipoServiciosController(ApplicationDbContext context, ITipoServicioRepository ITipoServicioRepository)
+        public TipoServiciosController(ITipoServicioService tipoServicioService)
         {
-            _context = context;
-            _ITipoServicioRepository = ITipoServicioRepository;
+            _tiposervicioService = tipoServicioService;
         }
 
         [HttpGet]
-        [Route("/tiposervicios")]
+        [Route("/api/tiposervicios")]
         public async Task<IActionResult> GetTipoServicios()
         {
-            try
+
+            var tipoServicios = await _tiposervicioService.ObtenerTodos();
+            if (!tipoServicios.Success)
             {
-                var tipoServicios = await _ITipoServicioRepository.GetAllAsync();
-                return Ok(tipoServicios);
+                return BadRequest(tipoServicios.Errors);
             }
-            catch(DbException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
-            
+            return Ok(tipoServicios.Data);
         }
 
         [HttpGet]
-        [Route("/tiposervicio/{id}")]
+        [Route("/api/tiposervicio/{id}")]
         public async Task<IActionResult> GetTipoServicio(int id)
         {
-            try
+            var tipoServicio = await _tiposervicioService.ObtenerPorId(id);
+            if (!tipoServicio.Success)
             {
-                //var tipoServicioExiste = await _ITipoServicioRepository.GetByIdAsync(id);
-                var tipoServicioExiste = await _context.TipoServicios
-                    .Include(t => t.Servicios)
-                    .FirstOrDefaultAsync(t => t.TipoServicioId == id);
-                    
-                //En caso de que no se encuentre el id del tipoServicio en la base de datos
-                if (tipoServicioExiste == null) return NotFound($"El id:{id} no coincide con un TipoServicio Existente");
-
-                var tipoServicioDTO = new TipoServicioDTO
-                {
-                    TipoServicioId = tipoServicioExiste.TipoServicioId,
-                    Descripcion = tipoServicioExiste.Descripcion,
-                    Servicios = tipoServicioExiste.Servicios.Select(s => new ServicioDTO
-                    {
-                        ServicioId = s.ServicioId,
-                        Descripcion = s.Descripcion,
-                        Precio = s.Precio,
-                        Duracion = s.Duracion,
-                        Observacion = s.Observacion
-                    }).ToList()
-                };
-
-
-                return Ok(tipoServicioDTO);
+                return NotFound(tipoServicio.Errors);
             }
-            catch (DbException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
+
+            return Ok(tipoServicio.Data);
         }
 
         [HttpPost]
-        [Route("/agregar/tiposervicio")]
-        public async Task<IActionResult> PostTipoServicio([FromBody] TipoServicio tipoServicio)
+        [Route("/api/agregar/tiposervicio")]
+        public async Task<IActionResult> AgregarTipoServicio([FromBody] TipoServicioCreateDTO tipoServicio)
         {
-            try
+            var tipoServicioCreate = new TipoServicio { Descripcion = tipoServicio.Descripcion};
+
+            var crearTipoServicio = await _tiposervicioService.Crear(tipoServicioCreate);
+            if (!crearTipoServicio.Success)
             {
-                var agregarTipoServicio = new TipoServicio
-                {
-                    Descripcion = tipoServicio.Descripcion
-                };
-                await _ITipoServicioRepository.AddAsync(agregarTipoServicio);
-                return CreatedAtAction(nameof(GetTipoServicio), new{ id= agregarTipoServicio.TipoServicioId}, agregarTipoServicio);
+                return BadRequest(crearTipoServicio.Errors);
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
-            catch(DbException ex)
-            {
-                return StatusCode(500,ex.InnerException?.Message ?? ex.Message);
-            }
+
+            return CreatedAtAction(nameof(GetTipoServicio), new { id = crearTipoServicio.Data!.TipoServicioId }, crearTipoServicio.Data);
+
         }
 
         [HttpPatch]
-        [Route("/actualizar/tipoServicio/{id}")]
-        public async Task<IActionResult> ActualizarTipoServicio([FromBody]TipoServicio tipoServicio, int id)
+        [Route("/api/actualizar/tipoServicio/{id}")]
+        public async Task<IActionResult> ActualizarTipoServicio([FromBody] TipoServicioUpdateDTO tipoServicio, int id)
         {
-            try
+            var tipoServicioActualizar = new TipoServicio { Descripcion = tipoServicio.Descripcion };
+
+            var tipoServicioExiste = await _tiposervicioService.Actualizar(tipoServicioActualizar, id);
+            if (!tipoServicioExiste.Success)
             {
-                var tipoServicioExiste = await _context.TipoServicios.FindAsync(id);
-                if (tipoServicioExiste == null)
-                {
-                    return NotFound($"No existe tipo de servicio con id={id}");
-                }
-                await _ITipoServicioRepository.UpdateAsync(tipoServicioExiste);
-                return CreatedAtAction(nameof(GetTipoServicio), new { id = tipoServicioExiste.TipoServicioId }, tipoServicioExiste);
+                return BadRequest(tipoServicioExiste.Errors);
             }
-            catch(DbUpdateConcurrencyException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
+
+            return CreatedAtAction(nameof(GetTipoServicio), new { id = tipoServicioExiste.Data!.TipoServicioId }, tipoServicioExiste.Data);
         }
 
         [HttpDelete]
-        [Route("/eliminar/tiposervicio/{id}")]
+        [Route("/api/eliminar/tiposervicio/{id}")]
         public async Task<IActionResult> EliminarTipoServicio(int id)
         {
-            try
+            var tipoServicioEliminar = await _tiposervicioService.Eliminar(id);
+            if (!tipoServicioEliminar.Success)
             {
-                var tipoServicio = await _ITipoServicioRepository.GetByIdAsync(id);
-                if (tipoServicio == null)
-                {
-                    return NotFound($"El tipo de servicio con id={id} no existe en la base de datos");
-                }
+                return BadRequest(tipoServicioEliminar.Errors);
+            }
 
-                await _ITipoServicioRepository.Delete(tipoServicio);
-                return NoContent();
-               
-            }
-            catch(DbUpdateConcurrencyException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
-            catch (DbException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
+            return Ok(tipoServicioEliminar.Data); 
+
         }
 
     }

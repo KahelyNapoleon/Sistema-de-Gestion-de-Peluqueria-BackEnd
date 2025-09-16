@@ -21,11 +21,11 @@ namespace DAL.Repositorios
 
         public override async Task<TipoServicio?> BuscarAsync(int id)
         {
-            var tipoServicio = await _context.TipoServicios
+            var tipoServicioExiste = await _context.TipoServicios
                 .Include(t => t.Servicios)
                 .FirstOrDefaultAsync(t => t.TipoServicioId == id);
 
-            return tipoServicio;
+            return tipoServicioExiste;
         }
 
     }

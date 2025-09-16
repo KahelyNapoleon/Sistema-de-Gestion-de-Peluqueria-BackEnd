@@ -22,9 +22,9 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
         [HttpGet]
         [Route("/api/administradores")]
-        public IActionResult GetAdministradores()
+        public async Task<IActionResult> GetAdministradores()
         {
-            var administradores = _administradorService.ObtenerTodos().Result;
+            var administradores = await _administradorService.ObtenerTodos();
             if (!administradores.Success)
             {
                 return BadRequest(administradores.Errors);
@@ -35,12 +35,12 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
         [HttpGet]
         [Route("/api/administrador/{id}")]
-        public IActionResult GetAdministrador(int id)
+        public async Task<IActionResult> GetAdministrador(int id)
         {
-            var admin = _administradorService.ObtenerPorId(id).Result;
+            var admin = await _administradorService.ObtenerPorId(id);
             if (!admin.Success)
             {
-                return BadRequest(admin.Errors);
+                return NotFound(admin.Errors);
             }
             return Ok(admin.Data);
         }
@@ -100,7 +100,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                                                      //al metodo de eliminar como OperationResult<string>
             }
 
-            return Ok(adminEliminar.Data);
+            return Ok(adminEliminar.Data); //Aqui data retorna un mensaje que verifica que se elimino el registro.
         }
 
     }

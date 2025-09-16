@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using SistemaGestionPeluqueria.ApiWeb.DTOs;
+using BLL.Services.Interfaces;
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 {
@@ -12,121 +13,95 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
     [Route("[Controller]")]
     public class ServiciosController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IServicioRepository _IServicioRepository;
+        private readonly IServicioService _IServicioService;
 
-        public ServiciosController(IServicioRepository servicioRepository, ApplicationDbContext context)
+        public ServiciosController(IServicioService servicioService)
         {
-            _context = context;
-            _IServicioRepository = servicioRepository;
+            _IServicioService = servicioService;
         }
 
-
         [HttpGet]
-        [Route("/servicios")]
+        [Route("/api/servicios")]
         public async Task<IActionResult> GetServicios()
         {
-            var servicios = await _IServicioRepository.GetAllAsync();
-            if (servicios == null || !servicios.Any())
+            var servicios = await _IServicioService.ObtenerTodos();
+            if (!servicios.Success)
             {
-                return Ok("Aun no hay registros de Servicios");             
+                return BadRequest(servicios.Errors);
             }
 
-            return Ok(servicios);
+            return Ok(servicios.Data);
         }
 
         [HttpGet]
-        [Route("/servicio/{id}")]
+        [Route("/api/servicio/{id}")]
         public async Task<IActionResult> GetServicio(int id)
         {
-            try
+            var servicio = await _IServicioService.ObtenerPorId(id);
+            if (!servicio.Success)
             {
-                var servicio = await _IServicioRepository.GetByIdAsync(id);
-                if (servicio == null)
-                {
-                    return NotFound("El id no corresponde a un Servicio");
-                }
-                return Ok(servicio);    
+                return NotFound(servicio.Errors);
             }
-            catch(DbException ex)
-            {
-                return StatusCode(500 , ex.InnerException?.Message ?? ex.Message);
-            }
+            return Ok(servicio.Data);
         }
 
 
         [HttpPost]
-        [Route("/agregar/servicio")]
-        public async Task<IActionResult> AgregarServicio([FromBody] ServicioDTO servicio)
+        [Route("/api/agregar/servicio")]
+        public async Task<IActionResult> AgregarServicio([FromBody] ServicioCreateDTO servicio)
         {
-            try
+            var servicioNuevo = new Servicio
             {
-                var servicioNuevo = new Servicio
-                {
-                    Descripcion = servicio.Descripcion,
-                    Precio = (decimal)servicio.Precio,
-                    Duracion = servicio.Duracion,
-                    Observacion = servicio.Observacion,
-                    TipoServicioId = servicio.TipoServicioId
-                };
+                Descripcion = servicio.Descripcion,
+                Precio = (decimal)servicio.Precio,
+                Duracion = servicio.Duracion,
+                Observacion = servicio.Observacion,
+                TipoServicioId = servicio.TipoServicioId
+            };
 
-                await _IServicioRepository.AddAsync(servicioNuevo);
-
-                return CreatedAtAction(nameof(GetServicio), new {id = servicioNuevo.ServicioId}, servicioNuevo);
-
-            }catch(DbUpdateConcurrencyException ex)
+            var agregarServicio = await _IServicioService.Crear(servicioNuevo);
+            if (!agregarServicio.Success)
             {
-                return StatusCode(500,ex.Message);
+                return BadRequest(agregarServicio.Errors);
             }
+
+            return CreatedAtAction(nameof(GetServicio), new { id = servicioNuevo.ServicioId }, servicioNuevo);
         }
 
 
         [HttpPatch]
-        [Route("/editar/servicio/{id}")]
-        public async Task<IActionResult> ActualizarServicio([FromBody] Servicio servicio, int id)
+        [Route("/api/editar/servicio/{id}")]
+        public async Task<IActionResult> ActualizarServicio([FromBody] ServicioCreateDTO servicio, int id)
         {
-            try
+            var servicioEditar = new Servicio
             {
-                var servicioEditar = await _context.Servicios.FindAsync(id);
-                if (servicioEditar == null)
-                {
-                    return NotFound();
-                }
+                Descripcion = servicio.Descripcion,
+                Precio = servicio.Precio,
+                Duracion = servicio.Duracion,
+                Observacion = servicio.Observacion,
+                TipoServicioId = servicio.TipoServicioId
+            };
 
-                await _IServicioRepository.UpdateAsync(servicioEditar);
-                return CreatedAtAction(nameof(GetServicio), new {id = servicioEditar.ServicioId }, servicioEditar );
+            var actualizarServicio = await _IServicioService.Actualizar(servicioEditar, id);
+            if (!actualizarServicio.Success)
+            {
+                return BadRequest(actualizarServicio.Errors);
+            }
 
-            }
-            catch(DbUpdateConcurrencyException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
-            catch(Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            return CreatedAtAction(nameof(GetServicio), new { id = servicioEditar.ServicioId }, servicioEditar);
         }
 
 
         [HttpDelete]
-        [Route("/eliminar/servicio/{id}")]
+        [Route("/api/eliminar/servicio/{id}")]
         public async Task<IActionResult> EliminarServicio(int id)
         {
-            try
+            var servicioEliminar = await _IServicioService.Eliminar(id);
+            if (!servicioEliminar.Success)
             {
-                var servicioEliminar = await _IServicioRepository.GetByIdAsync(id);
-                if (servicioEliminar == null)
-                {
-                    return NotFound($"El servicio con id={id} no se encuentra en la base de datos. \n Intente con otro id");
-                }
-
-                await _IServicioRepository.Delete(servicioEliminar);
-                return NoContent();
-
-            }catch(DbUpdateConcurrencyException ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+                return BadRequest(servicioEliminar.Errors);
             }
+            return Ok(servicioEliminar.Data);
         }
 
 

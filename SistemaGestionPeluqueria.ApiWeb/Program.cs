@@ -47,7 +47,7 @@ namespace SistemaGestionPeluqueria.ApiWeb
             builder.Services.AddScoped<IMetodoPagoService, MetodoPagoServicio>(); //MetodoPago
             builder.Services.AddScoped<IServicioService, ServicioServicio>(); //Servicio
             builder.Services.AddScoped<ITipoServicioService, TipoServicioServicio>(); //TipoServicio
-            //builder.Services.AddScoped<ITurnoService, TurnoServicio>(); //Turno
+            builder.Services.AddScoped<ITurnoService, TurnoServicio>(); //Turno
 
 
 

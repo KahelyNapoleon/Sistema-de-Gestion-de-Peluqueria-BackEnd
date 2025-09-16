@@ -13,7 +13,7 @@ public partial class Servicio
 
     public int Duracion { get; set; }
 
-    public string? Observacion { get; set; }
+    public string? Observacion { get; set; } 
 
     public int TipoServicioId { get; set; }
 

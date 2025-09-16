@@ -19,8 +19,6 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             _IClienteService = clienteService;
         }
 
-
-
         [HttpGet]
         [Route("/api/clientes")]
         public async Task<IActionResult> GetClientes()
@@ -84,7 +82,6 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         [HttpPatch]
         public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ClienteDTO cliente)
         {
-
             var clienteActualizar = new Cliente
             {
                 ClienteId = id,
@@ -105,9 +102,6 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         }
 
 
-        //NO SE ELIMINA, PROBADO POR POSTMAN, 
-        //VER QUE CUANDO INGRESAMOS EL ID EN LA SOLICITUD DEL ENDPOINT, NOS REDIRIGUE AL METODO GETALL PERO NO ELIMINA 
-        //LA ENTIDAD CON EL ID INGRSADO
         [Route("/api/eliminar/cliente/{id}")]
         [HttpDelete]
         public async Task<IActionResult> EliminarCliente(int id)
@@ -120,7 +114,6 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
             return Ok(eliminacionCompletada.Data);
             //return RedirectToAction(nameof(GetClientes));
-
         }
 
     }
