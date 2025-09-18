@@ -59,7 +59,6 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
             }
 
             return CreatedAtAction(nameof(GetTipoServicio), new { id = crearTipoServicio.Data!.TipoServicioId }, crearTipoServicio.Data);
-
         }
 
         [HttpPatch]

@@ -2,6 +2,7 @@
 using DomainLayer.Models;
 using BLL.Services.Interfaces;
 using SistemaGestionPeluqueria.ApiWeb.DTOs;
+using Microsoft.JSInterop.Infrastructure;
 
 namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 {
@@ -50,7 +51,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                 Detalle = turno.Detalle,
                 ServicioId = turno.ServicioId,
                 ClienteId = turno.ClienteId,
-                EstadoTurnoId = turno.EstadoTurnoId,
+                EstadoTurnoId = turno.EstadoTurnoId, //En el servicio se guarda como EstadoTurnoId = 2.
                 MontoTotal = turno.MontoTotal,
                 MetodoPagoId = turno.MetodoPagoId,
                 HoraTurno = turno.HoraTurno,
@@ -68,9 +69,43 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
         [HttpPatch]
         [Route("/api/actualizar/turno/{id}")]
-        public async ActualizarTurno(int id)
+        public async Task<IActionResult> ActualizarEstadoTurno(int id, [FromBody] EstadoTurno estadoTurno)
         {
+            var nuevoEstadoTurno = new EstadoTurno { EstadoTurnoId = estadoTurno.EstadoTurnoId};
 
+            var turnoActualizar = await _turnoService.ActualizarEstadoTurno(id, nuevoEstadoTurno);
+
+            if (!turnoActualizar.Success)
+            {
+                return BadRequest(turnoActualizar.Errors);
+            }
+
+            return CreatedAtAction(nameof(GetTurno), new {id = turnoActualizar.Data!.TurnoId }, turnoActualizar.Data);
+        }
+
+        [HttpPatch]
+        [Route("/api/actualizar/turno/fechayhora/{id}")]
+        public async Task<IActionResult> ActualizarFechaYHora(int id, [FromBody] ActualizarTurnoFechaYHoraDTO dto)
+        {
+            var actualizarTurno = await _turnoService.ActualizarFechaYHoraTurno(id, dto.nuevaFecha, dto.nuevaHora, dto.EstadoTurno);
+            if (!actualizarTurno.Success)
+            {
+                return BadRequest(actualizarTurno.Errors);
+            }
+            return CreatedAtAction(nameof(GetTurno), new { id = actualizarTurno.Data!.TurnoId}, actualizarTurno.Data);
+        }
+
+        [HttpDelete]
+        [Route("/api/eliminar/turno/{id}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            var eliminarTurno = await _turnoService.Eliminar(id);
+            if (!eliminarTurno.Success)
+            {
+                return BadRequest(eliminarTurno.Errors);
+            }
+
+            return Ok(eliminarTurno.Data);
         }
     }
 }
