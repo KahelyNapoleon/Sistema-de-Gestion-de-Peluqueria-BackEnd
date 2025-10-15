@@ -48,7 +48,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
 
 
         [HttpPost]
-        [Route("/api/agregarcliente")]
+        [Route("/api/agregar/cliente")]
         public async Task<IActionResult> AgregarCliente([FromBody] ClienteDTO cliente)
         {
 
@@ -78,7 +78,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         /// <param name="id">ClienteId de la tabla clientes- se utiliza para buscarlo en la DB</param>
         /// <param name="cliente">Datos que la UI envia para actualizar los datos.</param>
         /// <returns>Un accionResult </returns>
-        [Route("/api/actualizarcliente/{id}")]
+        [Route("/api/actualizar/cliente/{id}")]
         [HttpPatch]
         public async Task<IActionResult> ActualizarCliente(int id, [FromBody] ClienteDTO cliente)
         {

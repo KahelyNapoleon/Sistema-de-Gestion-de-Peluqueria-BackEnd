@@ -3,6 +3,7 @@ using BLL.Services.OperationResult;
 using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -15,9 +16,11 @@ namespace BLL.Services
     public class EstadoTurnoServicio : IEstadoTurnoService
     {
         private readonly IEstadoTurnoRepository _estadoTurnoRepository;
+        private readonly ILogger<EstadoTurnoServicio> _logger;
 
-        public EstadoTurnoServicio(IEstadoTurnoRepository estadoTurnoRepository)
+        public EstadoTurnoServicio(IEstadoTurnoRepository estadoTurnoRepository, ILogger<EstadoTurnoServicio> logger)
         {
+            _logger = logger;
             _estadoTurnoRepository = estadoTurnoRepository;
         }
 
@@ -36,6 +39,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<IEnumerable<EstadoTurno>>.Fail("Algo salio mal " + ex.InnerException!.Message ?? ex.Message);
             }
         }
@@ -56,6 +60,8 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<EstadoTurno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -79,6 +85,8 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<EstadoTurno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -91,6 +99,7 @@ namespace BLL.Services
                 var estadoTurnoExiste = await _estadoTurnoRepository.GetByIdAsync(id);
                 if (estadoTurnoExiste == null)
                 {
+                    _logger.LogWarning("Id:{id} no existe", id);
                     return OperationResult<EstadoTurno>.Fail($"El Estado de Turno con id {id} no existe!");
                 }
 
@@ -110,6 +119,8 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<EstadoTurno>.Fail("Algo salio mal" + ex.InnerException?.Message);
             }
         }
@@ -123,6 +134,7 @@ namespace BLL.Services
                 var verificarSiExiste = await _estadoTurnoRepository.GetByIdAsync(id);
                 if (verificarSiExiste == null)
                 {
+                    _logger.LogWarning("Id{id} no existe", id);
                     return OperationResult<string>.Fail($"El registro con id {id} no existe.");
                 }
 
@@ -132,6 +144,8 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<string>.Fail("Algo salio mal "+ ex.InnerException?.Message);
             }
         }
@@ -144,7 +158,11 @@ namespace BLL.Services
 
             if (String.IsNullOrEmpty(estadoTurno.Descripcion)) errors.Add("Este campo es obligatorio");
 
-            if (!errors.Any()) return OperationResult<EstadoTurno>.Fail(errors.ToArray());
+            if (!errors.Any())
+            {
+                _logger.LogWarning("Error de validacion: {errores}", errors.ToArray());
+                return OperationResult<EstadoTurno>.Fail(errors.ToArray()); 
+            }
 
             return OperationResult<EstadoTurno>.Ok(estadoTurno);
         }

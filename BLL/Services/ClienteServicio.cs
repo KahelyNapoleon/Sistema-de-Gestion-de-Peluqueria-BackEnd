@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using BLL.Services.OperationResult;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
+using Microsoft.Extensions.Logging;
 
 namespace BLL.Services
 {
@@ -20,9 +21,11 @@ namespace BLL.Services
     public class ClienteServicio : IClienteService
     {
         private readonly IClienteRepository _clienteRepository;
+        private readonly ILogger<ClienteServicio> _logger;
 
-        public ClienteServicio(IClienteRepository clienteRepository)
+        public ClienteServicio(IClienteRepository clienteRepository, ILogger<ClienteServicio> logger)
         {
+            _logger = logger;
             _clienteRepository = clienteRepository;
         }
 
@@ -34,6 +37,7 @@ namespace BLL.Services
 
                 if (!clientes.Any())
                 {
+                    _logger.LogInformation("Aun no hay Clientes registrados");
                     return OperationResult<IEnumerable<Cliente>>.Fail("Aun no hay clientes registrados!");
                 }
 
@@ -41,6 +45,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal {message}", ex.InnerException?.Message);
                 return OperationResult<IEnumerable<Cliente>>.Fail("Algo salio mal " + ex.InnerException?.Message ?? ex.Message);
             }
 
@@ -53,6 +58,7 @@ namespace BLL.Services
                 var cliente = await _clienteRepository.GetByIdAsync(id);
                 if (cliente == null)
                 {
+                    _logger.LogInformation("El Cliente de id{id} no existe", id);
                     return OperationResult<Cliente>.Fail($"El cliente con id {id} no existe");
                 }
 
@@ -60,6 +66,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<Cliente>.Fail("Algo salio mal " + ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -79,11 +86,13 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<Cliente>.Fail(ex.InnerException!.Message);
             }
             catch (DbException ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
 
                 return OperationResult<Cliente>.Fail(ex.Message);
             }
@@ -98,6 +107,7 @@ namespace BLL.Services
                 var clienteExiste = await _clienteRepository.BuscarAsync(id);
                 if (clienteExiste == null)
                 {
+                    _logger.LogWarning("Id:{id} no existe",id);
                     return OperationResult<Cliente>.Fail("El id no corresponde a un cliente existente");
                 }
 
@@ -119,6 +129,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<Cliente>.Fail("Hubo un error de excepcion", ex.InnerException!.Message);
             }
         }
@@ -146,11 +157,14 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                var message = ex.InnerException?.Message;
-                return OperationResult<string>.Fail($"Algo salio mal {message}");
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+                
+                return OperationResult<string>.Fail($"Algo salio mal {ex.InnerException?.Message}");
             }
             catch (DbException ex)
-            { 
+            {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<string>.Fail($"Algo salio mal" + ex.InnerException?.Message ?? ex.Message);
             }
 
@@ -190,7 +204,10 @@ namespace BLL.Services
 
             //Si hay al menos un error... 
             if (errores.Any())
+            {
+                _logger.LogWarning("Error de validacion: {errores}", errores.ToArray());
                 return OperationResult<Cliente>.Fail(errores.ToArray());
+            }
 
             //Si todo sale bien.
             return OperationResult<Cliente>.Ok(cliente);

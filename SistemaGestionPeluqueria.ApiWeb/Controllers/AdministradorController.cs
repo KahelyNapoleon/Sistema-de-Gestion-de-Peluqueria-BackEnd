@@ -67,7 +67,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         }
 
         [HttpPatch]
-        [Route("/api/actualizaradministrador/{id}")]
+        [Route("/api/actualizar/administrador/{id}")]
         public async Task<IActionResult> Actualizar(int id, [FromBody] AdminUpdateDTO admin)
         {
            
@@ -100,7 +100,8 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
                                                      //al metodo de eliminar como OperationResult<string>
             }
 
-            return Ok(adminEliminar.Data); //Aqui data retorna un mensaje que verifica que se elimino el registro.
+            //return Ok(adminEliminar.Data); //Aqui data retorna un mensaje que verifica que se elimino el registro.
+            return NoContent();
         }
 
     }

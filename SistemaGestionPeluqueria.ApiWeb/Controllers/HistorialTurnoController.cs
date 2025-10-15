@@ -17,7 +17,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         }
 
         [HttpGet]
-        [Route("/api/HistorialTurnos")]
+        [Route("/api/historialturnos")]
         public async Task<IActionResult> GetHistorialturnos()
         {
             var historialTurnos = await _historialTurnoService.ObtenerTodos();

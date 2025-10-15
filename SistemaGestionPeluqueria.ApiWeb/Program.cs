@@ -21,6 +21,10 @@ namespace SistemaGestionPeluqueria.ApiWeb
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            //Registro de logeo 
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+
             // Add services to the container.        
 
             //Repositorios y Unidad de trabajo [ALCANCE]:
@@ -50,22 +54,24 @@ namespace SistemaGestionPeluqueria.ApiWeb
             builder.Services.AddScoped<ITurnoService, TurnoServicio>(); //Turno
 
 
-
+            builder.Services.AddControllers();
             //-----------------------------------------------------------------------------
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("PeluqueriaGestion")));
 
 
-            builder.Services.AddControllers();
+            
 
             var app = builder.Build();  //CORREGIR EL TEMA DE MODELSTATEWRAPPED YA QUE EL ENSAMBLADO 
-            // NO LO RECONOCE FUERA DEL MISMO EN LA CAPA DE SERVICIO.
+                                        // NO LO RECONOCE FUERA DEL MISMO EN LA CAPA DE SERVICIO.
+            
+
 
             //// Configure the HTTP request pipeline.
             //if (app.Environment.IsDevelopment())
             //{
-               
+
             //}
 
             app.UseHttpsRedirection();

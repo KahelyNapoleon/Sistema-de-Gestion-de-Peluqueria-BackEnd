@@ -68,7 +68,7 @@ namespace SistemaGestionPeluqueria.ApiWeb.Controllers
         }
 
         [HttpPatch]
-        [Route("/api/actualizar/turno/{id}")]
+        [Route("/api/actualizar/turno/estadoturno/{id}")]
         public async Task<IActionResult> ActualizarEstadoTurno(int id, [FromBody] EstadoTurno estadoTurno)
         {
             var nuevoEstadoTurno = new EstadoTurno { EstadoTurnoId = estadoTurno.EstadoTurnoId};

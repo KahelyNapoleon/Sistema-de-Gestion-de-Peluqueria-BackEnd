@@ -9,15 +9,19 @@ using BLL.Services.Interfaces;
 using DAL.Repositorios.Interfaces;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BLL.Services
 {
     public class ServicioServicio : IServicioService
     {
         private readonly IServicioRepository _IServicioRepository;
+        private readonly ILogger<ServicioServicio> _logger;
 
-        public ServicioServicio(IServicioRepository servicioRepository)
+        public ServicioServicio(IServicioRepository servicioRepository, ILogger<ServicioServicio> logger)
         {
+            _logger = logger;
             _IServicioRepository = servicioRepository;
         }
 
@@ -29,6 +33,7 @@ namespace BLL.Services
                 var servicios = await _IServicioRepository.GetAllAsync();
                 if (!servicios.Any())
                 {
+                    _logger.LogInformation("No hay Servicios registrados.");
                     return OperationResult<IEnumerable<Servicio>>.Fail("Aun no hay servicios Registrados.");
                 }
 
@@ -36,6 +41,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<IEnumerable<Servicio>>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -48,6 +54,7 @@ namespace BLL.Services
                 var servicio = await _IServicioRepository.GetByIdAsync(id);
                 if (servicio == null)
                 {
+                    _logger.LogInformation("No existe el servicio registrado id:{id}.", id);
                     return OperationResult<Servicio>.Fail($"No existe registgro con id {id}");
                 }
 
@@ -55,6 +62,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<Servicio>.Fail("Algo salio mal" + ex.InnerException?.Message);
             }
         }
@@ -76,6 +84,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<Servicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -95,6 +104,7 @@ namespace BLL.Services
                 var servicioExiste = await _IServicioRepository.GetByIdAsync(id);
                 if (servicioExiste == null)
                 {
+                    _logger.LogWarning("Servicio id:{id} no se encuentra", id);
                     return OperationResult<Servicio>.Fail($"El servicio con id {id} no existe");
                 }
 
@@ -110,6 +120,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<Servicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -122,6 +133,7 @@ namespace BLL.Services
                 var eliminarServicio = await _IServicioRepository.GetByIdAsync(id);
                 if (eliminarServicio == null)
                 {
+                    _logger.LogWarning("Id:{id} no se encuentra.",id);
                     return OperationResult<string>.Fail($"No existe servicio id {id}");
                 }
 
@@ -131,6 +143,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<string>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -149,6 +162,7 @@ namespace BLL.Services
 
             if (errors.Any())
             {
+                _logger.LogWarning("Datos invalidos: {errors}", errors.ToArray());
                 return OperationResult<Servicio>.Fail(errors.ToArray());
             }
 

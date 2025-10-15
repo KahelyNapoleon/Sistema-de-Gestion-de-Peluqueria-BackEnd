@@ -9,6 +9,7 @@ using BLL.Services.OperationResult;
 using DAL.Repositorios;
 using DAL.Repositorios.Interfaces;
 using DomainLayer.Models;
+using Microsoft.Extensions.Logging;
 
 namespace BLL.Services
 {
@@ -18,9 +19,11 @@ namespace BLL.Services
         //Se reevio que tipo de implementacion debe devolver este servicio...
 
         private readonly IHistorialTurnoRepository _historialTurnoRepositorio;
+        private readonly ILogger<HistorialTurnoServicio> _logger;
 
-        public HistorialTurnoServicio(IHistorialTurnoRepository historialTurnoRepositorio)
+        public HistorialTurnoServicio(IHistorialTurnoRepository historialTurnoRepositorio, ILogger<HistorialTurnoServicio> logger)
         {
+            _logger = logger;
             _historialTurnoRepositorio = historialTurnoRepositorio;
         }
 
@@ -43,6 +46,8 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<IEnumerable<HistorialTurno>>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -62,6 +67,8 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
+
                 return OperationResult<HistorialTurno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
 

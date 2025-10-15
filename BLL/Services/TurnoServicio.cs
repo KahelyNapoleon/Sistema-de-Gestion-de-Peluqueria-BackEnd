@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DAL.Repositorios;
-using DAL.UnitOfWork;
 using BLL.Services.OperationResult;
 using BLL.Services.Interfaces;
 using DAL.Repositorios.Interfaces;
 using DAL.UnitOfWork.Interfaces;
 using DomainLayer.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
+using Microsoft.Extensions.Logging;
 
 namespace BLL.Services
 {
@@ -20,9 +18,11 @@ namespace BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         //private readonly ITurnoService _turnoService;
+        private readonly ILogger<TurnoServicio> _logger;
 
-        public TurnoServicio(IUnitOfWork unitOfWork)
+        public TurnoServicio(IUnitOfWork unitOfWork, ILogger<TurnoServicio> logger)
         {
+            _logger = logger;
             _unitOfWork = unitOfWork;
         }
 
@@ -34,6 +34,7 @@ namespace BLL.Services
                 var turnos = await _unitOfWork.TurnoRepository.GetAllAsync();
                 if (!turnos.Any())
                 {
+                    _logger.LogInformation("Aun no hay turnos registrados.");
                     return OperationResult<IEnumerable<Turno>>.Fail("Aun no hay turnos registrados.");
                 }
 
@@ -41,6 +42,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<IEnumerable<Turno>>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -53,6 +55,7 @@ namespace BLL.Services
                 var turno = await _unitOfWork.TurnoRepository.GetByIdAsync(id);
                 if (turno == null)
                 {
+                    _logger.LogInformation("Id:{id} no se encuentra.", id);
                     return OperationResult<Turno>.Fail($"El registro con id {id} no se encuentra.");
                 }
 
@@ -60,6 +63,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<Turno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -77,6 +81,7 @@ namespace BLL.Services
                 }
 
                 //2-LUEGO SE INICIA UNA TRANSACCION DE LOS DATOS PARA ENVIARLOS ATOMICAMENTE A LA BASE DE DATOS
+                _logger.LogTrace("Inicio de Transaccion en Crear turno.");
                 await _unitOfWork.IniciarTransaccionAsync();
 
                 turno.EstadoTurnoId = 2; //EstadoTurno = 2 -> A Confirmar;
@@ -104,6 +109,7 @@ namespace BLL.Services
                 await _unitOfWork.GuardarCambiosAsync();
 
                 //6-CONFIRMO LOS FATOS CON UN CommitAsync(). guardandolos en la Base de datos.
+                _logger.LogTrace("Se confirma la transaccion en Crear turno.");
                 await _unitOfWork.ConfirmarCambios();
 
                 return OperationResult<Turno>.Ok(turno);
@@ -112,6 +118,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 await _unitOfWork.DeshacerCambiosAsync();
                 return OperationResult<Turno>.Fail("Ocurrio un error", ex.Message);
             }
@@ -126,9 +133,11 @@ namespace BLL.Services
                 var turnoExiste = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
                 if (turnoExiste == null)
                 {
+                    _logger.LogWarning("No se encuentra el registro id:{id}", turnoId);
                     return OperationResult<Turno>.Fail($"No se encuentra el registro de id {turnoId}");
                 }
 
+                _logger.LogTrace("Se inicia la transaccion en Actualizar turno.");
                 await _unitOfWork.IniciarTransaccionAsync();
 
                 var estadoAnteriorId = turnoExiste.EstadoTurnoId; //REVISAR ESTOS DOS MOVIMIENTOS
@@ -152,6 +161,7 @@ namespace BLL.Services
                 await _unitOfWork.HistorialTurnoRepository.AddAsync(nuevoHistorialTurno);
                 await _unitOfWork.GuardarCambiosAsync();
 
+                _logger.LogTrace("Confirmacion de los cambios en Actualizar Turno.");
                 await _unitOfWork.ConfirmarCambios();
 
                 return OperationResult<Turno>.Ok(turnoExiste);
@@ -159,6 +169,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 await _unitOfWork.DeshacerCambiosAsync();
                 return OperationResult<Turno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
@@ -173,6 +184,7 @@ namespace BLL.Services
                 var turnoExiste = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
                 if (turnoExiste == null)
                 {
+                    _logger.LogInformation("El id:{id} no se encuentra", turnoId);
                     return OperationResult<Turno>.Fail($"El turno con id {turnoId} no se encuentra.");
                 }
 
@@ -184,6 +196,7 @@ namespace BLL.Services
                 }
 
                 //INICIO DE TRANSACCION
+                _logger.LogTrace("Inicio de transaccion para Actualizar Fecha y Hora.");
                 await _unitOfWork.IniciarTransaccionAsync();
 
                 //SE GUARDAN LOS DATOS ANTIGUOS DE LA FECHA, HORA Y ESTADO DEL TURNO 
@@ -222,6 +235,7 @@ namespace BLL.Services
                 await _unitOfWork.GuardarCambiosAsync();
 
                 //AQUI SE CONFIRMAN LOS CAMBIOS QUE SE REALIZARON EN LA BASE DE DATOS Y LOS REALIZA COMO UNA SOLA OPERACION UNICA.
+                _logger.LogTrace("Confirmacion de los Cambios de la transaccion.");
                 await _unitOfWork.ConfirmarCambios();
 
 
@@ -230,8 +244,8 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 await _unitOfWork.DeshacerCambiosAsync();
-
                 return OperationResult<Turno>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
 
@@ -245,6 +259,7 @@ namespace BLL.Services
                 var turnoEliminar = await _unitOfWork.TurnoRepository.GetByIdAsync(turnoId);
                 if (turnoEliminar == null)
                 {
+                    _logger.LogInformation("Id:{id} no se encuentra.", turnoId);
                     return OperationResult<string>.Fail($"Id {turnoId} no hallado.");
                 }
 
@@ -254,6 +269,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 var message = ex.InnerException?.Message;
                 return OperationResult<string>.Fail("Algo salio mal "+ message);
             }
@@ -288,6 +304,7 @@ namespace BLL.Services
 
             if (errors.Any())
             {
+                _logger.LogWarning("Errores en la validacion del turno. Errores:{errors}", errors.ToArray());
                 return OperationResult<Turno>.Fail(errors.ToArray());
             }
 
@@ -306,6 +323,7 @@ namespace BLL.Services
 
             if (errors.Any())
             {
+                _logger.LogWarning("Errores en la validacion de fecha y hora. Errores:{errors}", errors.ToArray());
                 return OperationResult<bool>.Fail(errors.ToArray());
             }
 

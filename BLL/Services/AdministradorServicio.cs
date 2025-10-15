@@ -11,16 +11,19 @@ using BLL.BCryptHasher;
 using BLL.Services.OperationResult;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BLL.Services
 {
     public class AdministradorServicio : IAdministradorService
     {
-        public readonly IAdministradorRepository _administradorRepository;
+        private readonly IAdministradorRepository _administradorRepository;
+        private readonly ILogger<AdministradorServicio> _logger;
 
-        public AdministradorServicio(IAdministradorRepository administradorRepository)
+        public AdministradorServicio(IAdministradorRepository administradorRepository, ILogger<AdministradorServicio> logger)
         {
             _administradorRepository = administradorRepository;
+            _logger = logger;
         }
 
         public async Task<OperationResult<IEnumerable<Administrador>>> ObtenerTodos()
@@ -30,6 +33,7 @@ namespace BLL.Services
                 var administradores = await _administradorRepository.GetAllAsync();
                 if (!administradores.Any())
                 {
+                    _logger.LogInformation("Sin datos registrados para la tabla Administrador.");
                     return OperationResult<IEnumerable<Administrador>>.Fail("Aun no hay Administradores registrados.");
                 }
 
@@ -37,6 +41,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal al recuperar los datos en la base de datos. {Message}",ex.InnerException?.Message);
                 return OperationResult<IEnumerable<Administrador>>.Fail(ex.InnerException?.Message ?? ex.Message);
             }
 
@@ -50,6 +55,7 @@ namespace BLL.Services
                 var admin = await _administradorRepository.GetByIdAsync(id);
                 if (admin == null)
                 {
+                    _logger.LogInformation("El Id:{id} no existe ", id);
                     return OperationResult<Administrador>.Fail($"Id {id} no existe en los registros.");
                 }
 
@@ -58,6 +64,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogError("Algo salio mal con la conexion a la base de datos: {Message}", ex.InnerException?.Message);
                 return OperationResult<Administrador>.Fail(ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -73,8 +80,11 @@ namespace BLL.Services
             {
                 var validarAdmin = ValidarAdministrador(admin);
                 if (!validarAdmin.Success)
+                {
                     return validarAdmin; //El metodo ValidarAdministrador retorna un tipo OperationResult...Ok... o ...Fail
                                          //En este caso si entro dentro del codigo if => Success = False;
+                }
+
 
                 //Aca se debe hashear la contrasenia creada
                 admin.Contrasena = PasswordHasher.Hashear(admin.Contrasena);
@@ -85,6 +95,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogError("Error de Concurrencia de datos: {Message}.", ex.InnerException?.Message);
                 return OperationResult<Administrador>.Fail(ex.InnerException!.Message ?? ex.Message);
             }
         }
@@ -96,12 +107,15 @@ namespace BLL.Services
                 var adminExiste = await _administradorRepository.BuscarAsync(id);
                 if (adminExiste == null)
                 {
+                    _logger.LogInformation("Id inexistente.");
                     return OperationResult<Administrador>.Fail($"El id{id} no existe.");
                 }
 
                 var adminValidar = ValidarAdministrador(admin);
-                if (!adminValidar.Success)//Si entra en esta condicion el resultado de la validacion
-                {                         // significa que algo salio mal
+                //Si entra en esta condicion el resultado de la validacion significa que algo salio mal
+                if (!adminValidar.Success)
+                {
+                 
                     return adminValidar; //Aca retorna el tipo OoperationResilt<Admin> pero con una lista de errores
                 }                        //y la prop. success => false.
 
@@ -119,6 +133,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning($"Algo salio mal: {ex.InnerException?.Message}");
                 return OperationResult<Administrador>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
 
@@ -129,12 +144,12 @@ namespace BLL.Services
 
         public async Task<OperationResult<string>> Eliminar(int id)
         {
-
             try
             {
                 var administradorExiste = await _administradorRepository.GetByIdAsync(id);
                 if (administradorExiste == null)//Si no Existe enviar un mensaje de Error
                 {
+                    _logger.LogWarning("Error, el id que se quiere eliminar no existe");
                     return OperationResult<string>.Fail($"El id {id} no se encuentra en los registros!");
                 }
 
@@ -145,6 +160,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Error de excepcion {error}", ex.InnerException?.Message);
                 return OperationResult<string>.Fail($"Hubo un error: " + ex.InnerException!.Message ?? ex.Message);
             }
 
@@ -211,10 +227,16 @@ namespace BLL.Services
 
             //FIN DE INICIO DE VALIDACIONES
 
-            if (errores.Any()) return OperationResult<Administrador>.Fail(errores.ToArray());
+            if (errores.Any())
+            {
+                _logger.LogWarning("Error de Validacion: {errores}", errores.ToArray());
+
+                return OperationResult<Administrador>.Fail(errores.ToArray());
+            }
 
             //Si no hay errores en la validacion de los datos para crear un administrador
             //se retorna un tipo OperationResult que admite tipo 'Administrador' y 
+            
             return OperationResult<Administrador>.Ok(administrador);
         }
     }

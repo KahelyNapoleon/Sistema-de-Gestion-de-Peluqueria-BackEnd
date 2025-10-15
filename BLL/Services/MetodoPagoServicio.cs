@@ -9,16 +9,18 @@ using DomainLayer.Models;
 using BLL.Services.OperationResult;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BLL.Services
 {
     public class MetodoPagoServicio : IMetodoPagoService
     {
         private readonly IMetodoPagoRepository _metodoPagoRepository;
+        private readonly ILogger<MetodoPagoServicio> _logger;
 
-
-        public MetodoPagoServicio(IMetodoPagoRepository metodoPagoRepository) //: base(metodoPagoRepository, validationDictionary) 
+        public MetodoPagoServicio(IMetodoPagoRepository metodoPagoRepository, ILogger<MetodoPagoServicio> logger) //: base(metodoPagoRepository, validationDictionary) 
         {
+            _logger = logger;
             _metodoPagoRepository = metodoPagoRepository;
         }
 
@@ -33,6 +35,7 @@ namespace BLL.Services
                 var metodosPagos = await _metodoPagoRepository.GetAllAsync();
                 if (!metodosPagos.Any())
                 {
+                    _logger.LogInformation($"Sin Registros de Metodos de Pagos)");
                     return OperationResult<IEnumerable<MetodoPago>>.Fail("Aun no hay registros");
                 }
 
@@ -40,6 +43,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<IEnumerable<MetodoPago>>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
 
@@ -57,6 +61,7 @@ namespace BLL.Services
                 var metodoPago = await _metodoPagoRepository.GetByIdAsync(id);
                 if (metodoPago == null)
                 {
+                    _logger.LogInformation($"No existe el registro de id {id}");
                     return OperationResult<MetodoPago>.Fail($"No existe registor id{id}");
                 }
 
@@ -64,9 +69,9 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal {message}", ex.InnerException?.Message);
                 return OperationResult<MetodoPago>.Fail("Algo salio mal" + ex.InnerException?.Message);
             }
-
         }
 
         /// <summary>
@@ -81,7 +86,8 @@ namespace BLL.Services
                 var validarMetodoPago = ValidarMetodoPago(metodoPagoACrear);
 
                 if (!validarMetodoPago.Success) 
-                { 
+                {
+                   
                     return validarMetodoPago;   //Retorna un tipo OperationResult
                 }
 
@@ -90,6 +96,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal {message}", ex.InnerException?.Message);
                 return OperationResult<MetodoPago>.Fail("Algo salio mal" + ex.InnerException?.Message);
             }
         }
@@ -107,6 +114,7 @@ namespace BLL.Services
                 var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id); //Se obtiene por id [A]
                 if (metodoPagoExiste == null)
                 {
+                    _logger.LogInformation("Registro de id:{id} no se encuentra.", id);
                     return OperationResult<MetodoPago>.Fail("El registro no se encuentra.");
                 }
 
@@ -120,6 +128,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<MetodoPago>.Fail("Algo salio mal" + ex.InnerException?.Message);
             }
         }
@@ -131,6 +140,7 @@ namespace BLL.Services
                 var metodoPagoExiste = await _metodoPagoRepository.GetByIdAsync(id);
                 if (metodoPagoExiste == null)
                 {
+                    _logger.LogInformation("El registro de Id {id} no se encuentra", id);
                     return OperationResult<string>.Fail("Metodo de pago que quieres eliminar no existe!"); ;
                 }
                 await _metodoPagoRepository.Delete(metodoPagoExiste);
@@ -138,6 +148,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<string>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -161,6 +172,7 @@ namespace BLL.Services
 
             if (errores.Any())
             {
+                _logger.LogInformation("Error de validacion de datos. Errores: ", errores.ToArray());
                 return OperationResult<MetodoPago>.Fail(errores.ToArray());//CONVIERTE UN TIPO LIST<T> EN UN ARRAY...
             }
 

@@ -9,17 +9,20 @@ using DAL.Repositorios.Interfaces;
 using BLL.Services.Interfaces;
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
- 
+using Microsoft.Extensions.Logging;
+
 
 namespace BLL.Services
 {
     public class TipoServicioServicio : ITipoServicioService
     {
         private readonly ITipoServicioRepository _tipoServicioRepository;
+        private readonly ILogger<TipoServicioServicio> _logger;
 
-        public TipoServicioServicio(ITipoServicioRepository tipoServicioRepository)
+        public TipoServicioServicio(ITipoServicioRepository tipoServicioRepository, ILogger<TipoServicioServicio> logger)
         {
             _tipoServicioRepository = tipoServicioRepository;
+            _logger = logger;
         }
 
         //ObtenerTodo
@@ -30,6 +33,7 @@ namespace BLL.Services
                 var tipoServicios = await _tipoServicioRepository.GetAllAsync();
                 if (!tipoServicios.Any())
                 {
+                    _logger.LogInformation("Aun no hay registros.");
                     return OperationResult<IEnumerable<TipoServicio>>.Fail("No se registran datos de tipo servicio");
                 }
 
@@ -37,6 +41,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<IEnumerable<TipoServicio>>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -49,6 +54,7 @@ namespace BLL.Services
                 var tipoServicio = await _tipoServicioRepository.BuscarAsync(id);
                 if (tipoServicio == null)
                 {
+                    _logger.LogInformation("No hay registro de id:{id}.", id);
                     return OperationResult<TipoServicio>.Fail($"No existe registro con id {id}");
                 }
 
@@ -70,6 +76,7 @@ namespace BLL.Services
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<TipoServicio>.Fail("Algo salio mal" + ex.InnerException?.Message);
             }
         }
@@ -91,10 +98,12 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<TipoServicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
             catch (DbException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<TipoServicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -113,6 +122,7 @@ namespace BLL.Services
                 var tipoServicioExiste = await _tipoServicioRepository.GetByIdAsync(id);
                 if (tipoServicioExiste == null)
                 {
+                    _logger.LogWarning("El id:{id} no se enceuntra.", id);
                     return OperationResult<TipoServicio>.Fail($"El servicio con id {id} no existe en los registros.");
                 }
 
@@ -125,6 +135,7 @@ namespace BLL.Services
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<TipoServicio>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -137,6 +148,7 @@ namespace BLL.Services
                 var tipoServicioEliminar = await _tipoServicioRepository.GetByIdAsync(id);
                 if (tipoServicioEliminar == null)
                 {
+                    _logger.LogInformation("El registro de id:{id} no se encuentra", id);
                     return OperationResult<string>.Fail($"Tipo servicio con id {id} no existe en los registros.");
                 }
 
@@ -146,6 +158,7 @@ namespace BLL.Services
             }
             catch(DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning("Algo salio mal: {message}", ex.InnerException?.Message);
                 return OperationResult<string>.Fail("Algo salio mal " + ex.InnerException?.Message);
             }
         }
@@ -159,6 +172,7 @@ namespace BLL.Services
 
             if (errors.Any())
             {
+                _logger.LogWarning("Error de validacion, Errores: {errores}", errors.ToArray());
                 return OperationResult<TipoServicio>.Fail(errors.ToArray());
             }
 
